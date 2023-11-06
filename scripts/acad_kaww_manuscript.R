@@ -62,6 +62,7 @@ inatA <- tibble(read.csv("data/acad_inat_obs.csv")) %>%
   mutate(scientific.name = ifelse(scientific.name == "Heterocampa umbrata", "Heterocampa pulverea", scientific.name),
          species = ifelse(species == "umbrata", "pulverea", species))
 
+
 ## Read, format, filter to ACAD, and clean the eBird data
 ebdA <- tibble(read.delim("data/ebd_US-ME_relFeb-2023.txt", header = T, quote = "")) %>% 
   dplyr::select(c('COMMON.NAME', 'SCIENTIFIC.NAME', 'CATEGORY', 'OBSERVATION.DATE', 'OBSERVATION.COUNT', 
