@@ -28,39 +28,35 @@ library(geosphere)
 library(png)
 library(grid)
 
-source("functions/analysis_functions.R")
+source("scripts/analysis_functions.R")
 
 
 
 
 #------------------------------------------------#
-####             Read and Clean               ####
+####        Data Import and Cleaning          ####
 #------------------------------------------------#
 
 ### ACAD data import ###
 
 ## Read, format, filter to ACAD, and clean the iNaturalist data
-inatA <- tibble(read.csv("data/acad_inat_obs.csv")) %>% 
+inatA <- tibble(read.csv("data/acad_inat_obs_20231107.csv")) %>% 
   filter_nps(., "Acadia National Park", "latitude", "longitude") %>% 
+  filter(observed_on <= "2022-12-31") %>% 
   mutate(year = year(observed_on),
          month = month(observed_on)) %>% 
   rename_with(~str_replace_all(., "_", "."), .cols = everything()) %>% 
-  dplyr::select(-c(id, observed.on.string, created.at, updated.at, 
-                   license:num.identification.disagreements, 
-                   oauth.application.id, private.place.guess:species.guess)) %>% 
-  mutate(taxon = str_extract(scientific.name, "^\\w*"),
-         species = str_remove(scientific.name, "^\\w*"),
-         species = str_trim(species, "both"),
-         subspecies = str_extract(species, "\\s\\w*"),
-         subspecies = str_trim(subspecies, "both"),
-         species = str_extract(species, "[^\\s]+"),
-         species = ifelse(species == "×", NA, species),
-         park = "ACAD") %>% 
-  dplyr::select(common.name, scientific.name, taxon, species, subspecies, 
+  dplyr::select(id, observed.on, time.observed.at, user.id, user.login,
+                   quality.grade:positional.accuracy, coordinates.obscured,
+                   species.guess:month) %>% 
+  mutate(park = "ACAD") %>% 
+  dplyr::select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
                 iconic.taxon.name, observed.on, year, month, quality.grade, latitude, 
-                longitude, user.login, everything()) %>% 
-  mutate(scientific.name = ifelse(scientific.name == "Heterocampa umbrata", "Heterocampa pulverea", scientific.name),
-         species = ifelse(species == "umbrata", "pulverea", species))
+                longitude, user.login, everything(), full.scientific.name = scientific.name) %>% 
+  rename(kingdom = taxon.kingdom.name, phylum = taxon.phylum.name,
+         class = taxon.class.name, order = taxon.order.name,
+         family = taxon.family.name, genus = taxon.genus.name,
+         subspecies = taxon.subspecies.name)
 
 
 ## Read, format, filter to ACAD, and clean the eBird data
@@ -94,26 +90,23 @@ acad.bounds <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp")
 ### KAWW data import ###
 
 ## Read, format, filter to KAWW, and clean the iNaturalist data
-inatK <- tibble(read.csv("data/kaww_inat_obs_tax.csv")) %>% 
+inatK <- tibble(read.csv("data/kaww_inat_obs_20231108.csv")) %>% 
   filter_nps(., "Katahdin Woods and Waters National Monument", "latitude", "longitude") %>% 
+  filter(observed_on <= "2022-12-31") %>% 
   mutate(year = year(observed_on),
          month = month(observed_on)) %>% 
   rename_with(~str_replace_all(., "_", "."), .cols = everything()) %>% 
-  dplyr::select(-c(id, observed.on.string, created.at, updated.at, 
-                   license:num.identification.disagreements, 
-                   oauth.application.id, private.place.guess:species.guess)) %>% 
-  mutate(taxon = str_extract(scientific.name, "^\\w*"),
-         species = str_remove(scientific.name, "^\\w*"),
-         species = str_trim(species, "both"),
-         subspecies = str_extract(species, "\\s\\w*"),
-         subspecies = str_trim(subspecies, "both"),
-         species = str_extract(species, "[^\\s]+"),
-         species = ifelse(species == "×", NA, species),
-         park = "KAWW") %>% 
-  dplyr::select(common.name, scientific.name, taxon, species, subspecies, 
+  dplyr::select(id, observed.on, time.observed.at, user.id, user.login,
+                quality.grade:positional.accuracy, coordinates.obscured,
+                species.guess:month) %>% 
+  mutate(park = "KAWW") %>% 
+  dplyr::select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
                 iconic.taxon.name, observed.on, year, month, quality.grade, latitude, 
-                longitude, user.login, everything()) %>%
-  filter(observed.on <= "2022-12-31")
+                longitude, user.login, everything(), full.scientific.name = scientific.name) %>% 
+  rename(kingdom = taxon.kingdom.name, phylum = taxon.phylum.name,
+         class = taxon.class.name, order = taxon.order.name,
+         family = taxon.family.name, genus = taxon.genus.name,
+         subspecies = taxon.subspecies.name)
 
 
 ## Read, format, filter to KAWW, and clean the eBird data
@@ -143,11 +136,11 @@ kaww.bounds <- sf::read_sf("data/kww_boundary/kww_boundary_polyg.shp")
 
 ### Figure additions ###
 
-readPNG("")
+
 
 
 #------------------------------------------------#
-####             Study area maps              ####
+####             Study Area Maps              ####
 #------------------------------------------------#
 
 ### Context map ###
@@ -165,7 +158,7 @@ ggplot(data = states) +
 
 
 ## Export figure
-ggsave("outputs/forpub/study_area_new_england.png", height = 5.28, width = 5.28, units = "in", dpi = 350)
+ggsave("outputs/forpub/study_area_new_england.png", height = 5.28, width = 5.28, units = "in", dpi = 500)
 
 
 
@@ -231,66 +224,28 @@ webshot("outputs/temp.html", file = "outputs/forpub/kaww_study_area.png",
 
 
 #------------------------------------------------#
-####         Data Set Summary Stats           ####
+####        High Level Summary Stats          ####
 #------------------------------------------------#
 
-### Total iNaturalist obs ###
-
-## Combine KAWW and ACAD data sets
 inat <- bind_rows(inatA, inatK)
-
-## All observations
-length(inatA$common.name) # 51,146
-length(inatK$common.name) # 2,100
-length(inat$common.name)  # 53,246
-
-
-## Average submissions per observer
-length(inatA$common.name)/length(unique(inatA$user.login)) # 11.12353
-length(inatK$common.name)/length(unique(inatK$user.login)) # 23.86364
-length(inat$common.name)/length(unique(inat$user.login))   # 11.44337
-
-
-## Get all obs that are research grade
-rgA <- inatA %>% 
-  filter(quality.grade == "research") 
-length(rgA$common.name)                # 27,566
-rgK <- inatK %>% 
-  filter(quality.grade == "research") 
-length(rgK$common.name)                # 1,276
-rg <- inat %>% 
-  filter(quality.grade == "research") 
-length(rg$common.name)                 # 28,842
-
-
-## Percentage of observations that are research grade
-paste0(round(length(rgA$species)/length(inatA$species)*100, digits = 2), "% of all observations are research grade.")
-paste0(round(length(rgK$species)/length(inatK$species)*100, digits = 2), "% of all observations are research grade.")
-paste0(round(length(rg$species)/length(inat$species)*100, digits = 2), "% of all observations are research grade.")
 
 
 ### Total species from iNaturalist
 ## Manipulate the data
 inatA_splist <- inatA %>% 
-  filter(!is.na(species) & quality.grade == "research") %>% 
-  mutate(sci.name = paste(taxon, species, sep = " ")) %>% 
-  dplyr::select(sci.name) %>% 
+  filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
+  dplyr::select(scientific.name) %>% 
   distinct() %>% 
-  rename(scientific.name = sci.name) %>% 
   arrange(scientific.name)
 inatK_splist <- inatK %>% 
-  filter(!is.na(species) & quality.grade == "research") %>% 
-  mutate(sci.name = paste(taxon, species, sep = " ")) %>% 
-  dplyr::select(sci.name) %>% 
+  filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
+  dplyr::select(scientific.name) %>% 
   distinct() %>% 
-  rename(scientific.name = sci.name) %>% 
   arrange(scientific.name)
-inat_splist <- inat %>% 
-  filter(!is.na(species) & quality.grade == "research") %>% 
-  mutate(sci.name = paste(taxon, species, sep = " ")) %>% 
-  dplyr::select(sci.name) %>% 
+inat_splist <- inat %>%
+  filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
+  dplyr::select(scientific.name) %>% 
   distinct() %>% 
-  rename(scientific.name = sci.name) %>% 
   arrange(scientific.name)
 
 
@@ -303,58 +258,7 @@ paste0("There have been ", length(inat_splist$scientific.name), " species record
 
 #------------------------------------------------#
 
-### Total eBird obs ###
-
-## Combine KAWW and ACAD data sets
 ebd <- bind_rows(ebdA, ebdK)
-
-
-## All observations
-length(ebdA$common.name) # 472,362
-length(ebdK$common.name) # 12,458
-length(ebd$common.name)  # 484,820
-
-
-## Total checklists
-ebird_chkA <- ebdA %>% 
-  distinct(checklist.id)
-ebird_chkK <- ebdK %>% 
-  distinct(checklist.id)
-ebird_chk <- ebd %>% 
-  distinct(checklist.id)
-
-paste0("There have been ", length(ebird_chkA$checklist.id), " checklists submitted by eBird users.")
-paste0("There have been ", length(ebird_chkK$checklist.id), " checklists submitted by eBird users.")
-paste0("There have been ", length(ebird_chk$checklist.id), " checklists submitted by eBird users.")
-
-
-## Average checklists per observer
-length(ebird_chkA$checklist.id)/length(unique(ebdA$observer.id)) # 6.954525
-length(ebird_chkK$checklist.id)/length(unique(ebdK$observer.id)) # 5.161137
-length(ebird_chk$checklist.id)/length(unique(ebd$observer.id)).  # 7.053639
-
-
-## Get all complete checklists
-ebirdcompA <- ebdA %>% 
-  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
-  distinct(checklist.id)
-ebirdcompK <- ebdK %>% 
-  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
-  distinct(checklist.id)
-ebirdcomp <- ebd %>% 
-  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
-  distinct(checklist.id)
-
-length(ebirdcompA$checklist.id) # 35,133
-length(ebirdcompK$checklist.id) # 897
-length(ebirdcomp$checklist.id)  # 36,030
-
-
-## Percentage of checklists that are complete
-paste0(round(length(ebirdcompA$checklist.id)/length(ebird_chkA$checklist.id)*100, digits = 2), "% of all checklists are complete.")
-paste0(round(length(ebirdcompK$checklist.id)/length(ebird_chkK$checklist.id)*100, digits = 2), "% of all checklists are complete.")
-paste0(round(length(ebirdcomp$checklist.id)/length(ebird_chk$checklist.id)*100, digits = 2), "% of all checklists are complete.")
-
 
 ### Total species from eBird
 ## Manipulate the data
@@ -368,10 +272,10 @@ ebird_splistK <- ebdK %>%
   dplyr::select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
-ebird_splist <- ebd %>% 
-  filter(category == "species") %>% 
-  dplyr::select(scientific.name) %>% 
-  distinct() %>% 
+ebird_splist <- ebd %>%
+  filter(category == "species") %>%
+  dplyr::select(scientific.name) %>%
+  distinct() %>%
   arrange(scientific.name)
 
 ## Determine number of species
@@ -383,41 +287,22 @@ paste0("There have been ", length(ebird_splist$scientific.name), " species recor
 
 #------------------------------------------------#
 
-### Park specific science quality data ###
-
-## Calculate percent of ACAD science-ready data
-compobsA <- ebdA %>% 
-  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental")
-
-(length(compobsA$common.name) + length(rgA$common.name))/ length(bind_rows(inatA, ebdA)$common.name)
-# 0.8438457
-
-## Calculate percent of KAWW science-ready data
-compobsK <- ebdK %>% 
-  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental")
-
-(length(compobsK$common.name) + length(rgK$common.name))/ length(bind_rows(inatK, ebdK)$common.name)
-# 0.9015661
-
-
-
-#------------------------------------------------#
-
 ### Total citizen science data set stats ###
 
 ## Total species across both data sets
 bind_rows(ebird_splist, inat_splist) %>% 
-  distinct(scientific.name)               # 2,174 species
+  filter(!is.na(scientific.name)) %>% 
+  distinct(scientific.name)               # 2,217 species
 
 
 ## Total number of observations
-length(bind_rows(inat, ebd)$common.name) # 538,066
+length(bind_rows(inat, ebd)$common.name) # 538,627
 
 
 
 
 #------------------------------------------------#
-####          Cumulative Observers            ####
+####                Observers                 ####
 #------------------------------------------------#
 
 ### iNaturalist ###
@@ -425,13 +310,13 @@ length(bind_rows(inat, ebd)$common.name) # 538,066
 
 ## Calculate ACAD cumulative observers
 cumulativeobA <- inatA %>% 
-  group_by(user.login) %>% 
+  group_by(user.id) %>% 
   filter(observed.on == min(observed.on)) %>% 
   slice(1) %>% # takes the first occurrence if there is a tie
   ungroup() %>% 
   mutate(year = year(observed.on)) %>% 
   group_by(year) %>% 
-  summarise(observers = length(user.login)) %>% 
+  summarise(observers = length(user.id)) %>% 
   arrange(year) %>% 
   mutate(cumsum = ifelse(is.na(observers), 0, observers),
          cumsum = cumsum(cumsum),
@@ -442,13 +327,13 @@ cumulativeobA <- inatA %>%
 
 ## Calculate KAWW cumulative observers
 cumulativeobK <- inatK %>% 
-  group_by(user.login) %>% 
+  group_by(user.id) %>% 
   filter(observed.on == min(observed.on)) %>% 
   slice(1) %>% # takes the first occurrence if there is a tie
   ungroup() %>% 
   mutate(year = year(observed.on)) %>% 
   group_by(year) %>% 
-  summarise(observers = length(user.login)) %>% 
+  summarise(observers = length(user.id)) %>% 
   arrange(year) %>% 
   mutate(cumsum = ifelse(is.na(observers), 0, observers),
          cumsum = cumsum(cumsum),
@@ -566,44 +451,1377 @@ ggsave(paste0("outputs/forpub/final_cumulative_ebd_", str_replace_all(today(), "
 
 
 
+#------------------------------------------------#
+
+### Total observers ###
+
+## Calculate unique observers IDs for iNaturalist across both parks
+inatobstot <- bind_rows(inatA, inatK) %>% 
+  dplyr::select(user.id) %>% 
+  distinct()
+
+# 4,745
+
+
+## Calculate unique observers IDs for eBird across both parks
+ebdobstot <- bind_rows(ebdA, ebdK) %>% 
+  dplyr::select(observer.id) %>% 
+  distinct()
+
+# 6,637
+
+
+## Sum
+length(inatobstot$user.id) + length(ebdobstot$observer.id) # 11,382
+
+
+
+
+#------------------------------------------------#
+####           ACAD Observations              ####
+#------------------------------------------------#
+
+### eBird ###
+
+### Data set summaries
+## All observations
+length(ebdA$common.name) # 472,362
+
+
+## Total checklists
+ebird_chkA <- ebdA %>% 
+  distinct(checklist.id)
+
+paste0("There have been ", length(ebird_chkA$checklist.id), " checklists submitted by eBird users.")
+
+
+## Average checklists per observer
+length(ebird_chkA$checklist.id) / length(unique(ebdA$observer.id)) # 6.954525
+
+
+## Get all complete checklists
+ebirdcompA <- ebdA %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
+  distinct(checklist.id)
+
+length(ebirdcompA$checklist.id) # 35,133
+
+
+## Percentage of checklists that are complete
+paste0(round(length(ebirdcompA$checklist.id) / length(ebird_chkA$checklist.id) * 100, digits = 2), "% of all checklists are complete.")
+
+
+
+### Monthly observations
+## Calculate number of complete checklists/month and format
+ck_compA <- ebdA %>% 
+  mutate(month = month(obs.date),
+         year = year(obs.date)) %>% 
+  filter(year > 1957) %>%
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>%
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(unique(checklist.id))) %>% 
+  arrange(date) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs),
+         data = "Complete checklists")
+
+
+## Calculate total number of checklists/month and format
+tempckA <- ebdA %>% 
+  mutate(month = month(obs.date),
+         year = year(obs.date)) %>% 
+  filter(year > 1957) %>%
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(unique(checklist.id))) %>% 
+  arrange(date) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs),
+         data = "Total checklists")
+
+
+## Bind the data sets for plotting
+ckcombA <- bind_rows(tempckA, ck_compA)
+
+
+## Plot 
+ckcombA %>% 
+  ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
+  geom_line(size = 0.8) +
+  theme_classic() +
+  labs(x = "Year", y = "Number of checklists") +
+  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+               date_labels =  "%Y", 
+               limits = c(as.Date("2004-01-01"), as.Date("2022-12-31"))) +
+  theme(legend.position = c(0.18, 0.85),
+        legend.background = element_rect(color = "black", size = 0.4),
+        legend.title = element_blank(),
+        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "12"),
+        axis.title = element_text(color = "black", size = "12"),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank()) +
+  scale_color_manual(values = c("Total checklists" = "gray50", "Complete checklists" = "black")) +
+  scale_alpha_manual(values = c("Total checklists" = 0.7, "Complete checklists" = 1)) +
+  scale_linetype_manual(values = c("Total checklists" = 1, "Complete checklists" = 1))
+
+## Export figure  
+# ggsave(paste0("outputs/forpub/monthly_obs_ebird_acad", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
+
+
+
+### Monthly summary stats
+## Create full date sequence to add zeros into the data
+datesebirdA <- tibble(date = seq(as.Date("1958/1/1"), as.Date("2022/12/1"), by = "month"))
+
+
+## Create data frame for calculations
+ebirdavgA <- datesebirdA %>% 
+  full_join(tempckA) %>% 
+  dplyr::select(date, tot.obs) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Calculate average checklists/month to 2010
+earlyeA <- ebirdavgA %>% 
+  filter(date <= "2010-01-01" & date >= "2000-01-01")
+mean(earlyeA$tot.obs)
+sd(earlyeA$tot.obs) / sqrt(length(earlyeA$tot.obs))
+
+
+## Calculate average checklists/month to current
+toteA <- ebirdavgA %>% 
+  filter(date >= "2000-01-01")
+mean(toteA$tot.obs)
+sd(toteA$tot.obs) / sqrt(length(toteA$tot.obs))
+
+
+## Summer months avg 2018 - 2022
+summereA <- ebirdavgA %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2018-06-01" & date <= "2022-08-31") %>% 
+  filter(month == 6 | month == 7 | month == 8)
+mean(summereA$tot.obs)
+sd(summereA$tot.obs) / sqrt(length(summereA$tot.obs))
+
+
+## Winter months avg 2018 - 2022
+wintereA <- ebirdavgA %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2017-12-01" & date <= "2022-02-28") %>% 
+  filter(month == 12 | month == 1 | month == 2)
+mean(wintereA$tot.obs)
+sd(wintereA$tot.obs) / sqrt(length(wintereA$tot.obs))
+
+
+## Calculate mean +- SE species per complete checklist
+avg.chA <- ebdA %>% 
+  filter(category == "species") %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
+  group_by(checklist.id) %>% 
+  summarise(richness = length(scientific.name))
+mean(avg.chA$richness)
+sd(avg.chA$richness) / sqrt(length(avg.chA$richness))
+
+
+
+#------------------------------------------------#
+
+### iNaturalist ###
+
+### Data set summaries
+## All observations
+length(inatA$common.name) # 51,703
+
+
+## Average submissions per observer
+length(inatA$common.name) / length(unique(inatA$user.login)) # 11.01705
+
+
+## Get all obs that are research grade
+rgA <- inatA %>% 
+  filter(quality.grade == "research") 
+length(rgA$common.name)                # 28,779
+
+
+## Percentage of observations that are research grade
+paste0(round(length(rgA$scientific.name) / length(inatA$scientific.name) * 100, digits = 2), "% of all observations are research grade.")
+
+
+
+### Monthly observations
+## Calculate number of ACAD research grade obs/month and format
+rgtempA <- inatA %>% 
+  filter(quality.grade == "research") %>%
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(common.name)) %>% 
+  arrange(date) %>% 
+  mutate(data = "Research grade observations",
+         tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Calculate total number of obs/month and format
+alltempA <- inatA %>% 
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(common.name)) %>%
+  arrange(date) %>% 
+  mutate(data = "Total observations",
+         tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Bind the data sets for plotting
+tempcoA <- bind_rows(alltempA, rgtempA)
+
+
+## Plot 
+tempcoA %>% 
+  ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
+  geom_line(size = 0.8) +
+  theme_classic() +
+  labs(x = "Year", y = "Number of observations") +
+  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+               date_labels =  "%Y", 
+               limits = c(as.Date("2004-01-01"), as.Date("2022-12-31"))) +
+  theme(legend.position = c(0.23, 0.85),
+        legend.background = element_rect(color = "black", size = 0.4),
+        legend.title = element_blank(),
+        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "12"),
+        axis.title = element_text(color = "black", size = "12"),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank()) +
+  scale_color_manual(values = c("Total observations" = "gray50", "Research grade observations" = "black")) +
+  scale_alpha_manual(values = c("Total observations" = 0.7, "Research grade observations" = 1)) +
+  scale_linetype_manual(values = c("Total observations" = 1, "Research grade observations" = 1))
+
+
+## Export figure  
+# ggsave(paste0("outputs/forpub/monthly_obs_inat_acad", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
+
+
+
+### Monthly summary stats
+## Create full date sequence to add zeros into the data
+datesinatA <- tibble(date = seq(as.Date("1976/1/1"), as.Date("2022/12/1"), by = "month"))
+
+
+## Create data frame for calculations
+inatavgA <- datesinatA %>% 
+  full_join(alltempA) %>% 
+  dplyr::select(date, tot.obs) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Calculate average obs/month to 2014
+earlyiA <- inatavgA %>% 
+  filter(date <= "2014-01-01" & date >= "2000-01-01") 
+mean(earlyiA$tot.obs)
+sd(earlyiA$tot.obs)/sqrt(length(earlyiA$tot.obs))
+
+
+## Calculate average obs/month to current
+totiA <- inatavgA %>% 
+  filter(date >= "2000-01-01")
+mean(totiA$tot.obs)
+sd(totiA$tot.obs)/sqrt(length(totiA$tot.obs))
+
+
+## Summer months avg 2018 - 2022
+summeriA <- inatavgA %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2018-06-01" & date <= "2022-08-31") %>% 
+  filter(month == 6 | month == 7 | month == 8)
+mean(summeriA$tot.obs)
+sd(summeriA$tot.obs)/sqrt(length(summeriA$tot.obs))
+
+
+## Winter months avg 2018 - 2022
+winteriA <- inatavgA %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2017-12-01" & date <= "2022-02-28") %>% 
+  filter(month == 12 | month == 1 | month == 2)
+mean(winteriA$tot.obs)
+sd(winteriA$tot.obs)/sqrt(length(winteriA$tot.obs))
+
+
+
+#------------------------------------------------#
+
+### Total park data set ###
+
+## Total number of ACAD citsci observations
+length(bind_rows(inatA, ebdA)$common.name) # 524,065
+
+
+## Percent of ACAD obs that are from iNaturalist
+length(inatA$common.name) / length(bind_rows(inatA, ebdA)$common.name) * 100 # 10%
+
+
+## Percent of ACAD obs that are from eBird
+length(ebdA$common.name) / length(bind_rows(inatA, ebdA)$common.name) * 100 # 90%
+
+
+## Calculate percent of ACAD science-ready data
+compobsA <- ebdA %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental")
+
+(length(compobsA$common.name) + length(rgA$common.name)) / length(bind_rows(inatA, ebdA)$common.name)
+# 0.8452635
+
+
+
+
+#------------------------------------------------#
+####           KAWW Observations              ####
+#------------------------------------------------#
+
+### eBird ###
+
+### Data set summaries
+## All observations
+length(ebdK$common.name) # 12,458
+
+
+## Total checklists
+ebird_chkK <- ebdK %>% 
+  distinct(checklist.id)
+
+paste0("There have been ", length(ebird_chkK$checklist.id), " checklists submitted by eBird users.")
+
+
+## Average checklists per observer
+length(ebird_chkK$checklist.id)/length(unique(ebdK$observer.id)) # 5.161137
+
+
+## Get all complete checklists
+ebirdcompK <- ebdK %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
+  distinct(checklist.id)
+
+length(ebirdcompK$checklist.id) # 897
+
+
+## Percentage of checklists that are complete
+paste0(round(length(ebirdcompK$checklist.id)/length(ebird_chkK$checklist.id)*100, digits = 2), "% of all checklists are complete.")
+
+
+
+### Monthly observations
+## Calculate number of complete checklists/month and format
+ck_compK <- ebdK %>% 
+  mutate(month = month(obs.date),
+         year = year(obs.date)) %>% 
+  filter(year > 1957) %>%
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(unique(checklist.id))) %>% 
+  arrange(date) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs),
+         data = "Complete checklists")
+
+
+## Calculate total number of checklists/month and format
+tempckK <- ebdK %>% 
+  mutate(month = month(obs.date),
+         year = year(obs.date)) %>% 
+  filter(year > 1957) %>%
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(unique(checklist.id))) %>% 
+  arrange(date) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs),
+         data = "Total checklists")
+
+
+## Bind the data sets for plotting
+ckcombK <- bind_rows(tempckK, ck_compK)
+
+
+## Plot 
+ckcombK %>% 
+  ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
+  geom_line(size = 0.8) +
+  theme_classic() +
+  labs(x = "Year", y = "Number of checklists") +
+  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+               date_labels =  "%Y", 
+               limits = c(as.Date("2014-01-01"), as.Date("2022-12-31"))) +
+  theme(legend.position = c(0.18, 0.85),
+        legend.background = element_rect(color = "black", size = 0.4),
+        legend.title = element_blank(),
+        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "12"),
+        axis.title = element_text(color = "black", size = "12"),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank()) +
+  scale_color_manual(values = c("Total checklists" = "gray50", "Complete checklists" = "black")) +
+  scale_alpha_manual(values = c("Total checklists" = 0.7, "Complete checklists" = 1)) +
+  scale_linetype_manual(values = c("Total checklists" = 1, "Complete checklists" = 1))
+
+
+## Export figure  
+# ggsave(paste0("outputs/forpub/monthly_obs_ebird_kaww", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
+
+
+
+### Monthly summary stats
+## Create full date sequence to add zeros into the data
+datesebirdK <- tibble(date = seq(as.Date("1958/1/1"), as.Date("2022/12/1"), by = "month"))
+
+
+## Create data frame for calculations
+ebirdavgK <- datesebirdK %>% 
+  full_join(tempckK) %>% 
+  dplyr::select(date, tot.obs) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Calculate average checklists/month to 2010
+earlyeK <- ebirdavgK %>% 
+  filter(date <= "2010-01-01" & date >= "2000-01-01")
+mean(earlyeK$tot.obs)
+sd(earlyeK$tot.obs) / sqrt(length(earlyeK$tot.obs))
+
+
+## Calculate average checklists/month to current
+toteK <- ebirdavgK %>% 
+  filter(date >= "2016-01-01")
+mean(toteK$tot.obs)
+sd(toteK$tot.obs) / sqrt(length(toteK$tot.obs))
+
+
+## Summer months avg 2018 - 2022
+summereK <- ebirdavgK %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2018-06-01" & date <= "2022-08-31") %>% 
+  filter(month == 6 | month == 7 | month == 8)
+mean(summereK$tot.obs)
+sd(summereK$tot.obs) / sqrt(length(summereK$tot.obs))
+
+
+## Winter months avg 2018 - 2022
+wintereK <- ebirdavgK %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2017-12-01" & date <= "2022-02-01") %>% 
+  filter(month == 12 | month == 1 | month == 2)
+mean(wintereK$tot.obs)
+sd(wintereK$tot.obs) / sqrt(length(wintereK$tot.obs))
+
+
+## Calculate mean +- SE species per complete checklist
+avg.chK <- ebdK %>% 
+  filter(category == "species") %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
+  group_by(checklist.id) %>% 
+  summarise(richness = length(scientific.name))
+mean(avg.chK$richness)
+sd(avg.chK$richness) / sqrt(length(avg.chK$richness))
+
+
+
+#------------------------------------------------#
+
+### iNaturalist ###
+
+### Data set summaries
+## All observations
+length(inatK$common.name) # 2,104
+
+
+## Average submissions per observer
+length(inatK$common.name) / length(unique(inatK$user.login)) # 24.18391
+
+
+## Get all obs that are research grade
+rgK <- inatK %>% 
+  filter(quality.grade == "research") 
+length(rgK$common.name)                # 1,288
+
+
+## Percentage of observations that are research grade
+paste0(round(length(rgK$scientific.name) / length(inatK$scientific.name) * 100, digits = 2), "% of all observations are research grade.")
+
+
+
+### Monthly observations
+## Calculate number of KAWW research grade obs/month and format
+rgtempK <- inatK %>% 
+  filter(quality.grade == "research") %>%
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(common.name)) %>% 
+  arrange(date) %>% 
+  mutate(data = "Research grade observations",
+         tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Calculate total number of obs/month and format
+alltempK <- inatK %>% 
+  mutate(date = ym(paste0(year, "-", month))) %>% 
+  group_by(date) %>% 
+  summarise(tot.obs = length(common.name)) %>%
+  arrange(date) %>% 
+  mutate(data = "Total observations",
+         tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+
+## Bind the data sets for plotting
+tempcoK <- bind_rows(alltempK, rgtempK)
+
+
+## Plot 
+tempcoK %>% 
+  ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
+  geom_line(size = 0.8) +
+  theme_classic() +
+  labs(x = "Year", y = "Number of observations") +
+  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+               date_labels =  "%Y", 
+               limits = c(as.Date("2014-01-01"), as.Date("2022-12-31"))) +
+  theme(legend.position = c(0.23, 0.85),
+        legend.background = element_rect(color = "black", size = 0.4),
+        legend.title = element_blank(),
+        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "12"),
+        axis.title = element_text(color = "black", size = "12"),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank()) +
+  scale_color_manual(values = c("Total observations" = "gray50", "Research grade observations" = "black")) +
+  scale_alpha_manual(values = c("Total observations" = 0.7, "Research grade observations" = 1)) +
+  scale_linetype_manual(values = c("Total observations" = 1, "Research grade observations" = 1))
+
+
+## Export figure  
+# ggsave(paste0("outputs/forpub/monthly_obs_inat_kaww", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
+
+
+
+### Monthly summary stats
+## Create full date sequence to add zeros into the data
+datesinatK <- tibble(date = seq(as.Date("1976/1/1"), as.Date("2022/12/1"), by = "month"))
+
+## Create data frame for calculations
+inatavgK <- datesinatK %>% 
+  full_join(alltempK) %>% 
+  dplyr::select(date, tot.obs) %>% 
+  mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
+
+## Calculate average obs/month to current
+totiK <- inatavgK %>% 
+  filter(date >= "2016-01-01")
+mean(totiK$tot.obs)
+sd(totiK$tot.obs)/sqrt(length(totiK$tot.obs))
+
+
+## Summer months avg 2018 - 2022
+summeriK <- inatavgK %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2018-06-01" & date <= "2022-08-31") %>% 
+  filter(month == 6 | month == 7 | month == 8)
+mean(summeriK$tot.obs)
+sd(summeriK$tot.obs)/sqrt(length(summeriK$tot.obs))
+
+
+## Winter months avg 2018 - 2022
+winteriK <- inatavgK %>% 
+  mutate(month = month(date)) %>% 
+  filter(date >= "2017-12-01" & date <= "2022-02-28") %>% 
+  filter(month == 12 | month == 1 | month == 2)
+mean(winteriK$tot.obs)
+sd(winteriK$tot.obs)/sqrt(length(winteriK$tot.obs))
+
+
+
+#------------------------------------------------#
+
+### Total park data set ###
+
+## Total number of KAWW citsci observations
+length(bind_rows(inatK, ebdK)$common.name) # 14,562
+
+
+## Percent of KAWW obs that are from iNaturalist
+length(inatK$common.name) / length(bind_rows(inatK, ebdK)$common.name) * 100 # 14%
+
+
+## Percent of KAWW obs that are from eBird
+length(ebdK$common.name) / length(bind_rows(inatK, ebdK)$common.name) * 100 # 86%
+
+
+## Calculate percent of KAWW science-ready data
+compobsK <- ebdK %>% 
+  filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental")
+
+(length(compobsK$common.name) + length(rgK$common.name)) / length(bind_rows(inatK, ebdK)$common.name)
+# 0.9021426
+
+
+
+
+#------------------------------------------------#
+####            Spatial Coverage              ####
+#------------------------------------------------#
+
+### ACAD ### 
+
+## Combine all data
+griddatA <- bind_rows(inatA, ebdA) %>% 
+  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
+
+
+## Specify min/max for grid
+xmnA = min(griddatA$longitude) - 0.05
+xmxA = max(griddatA$longitude) + 0.05
+ymnA = min(griddatA$latitude) - 0.05
+ymxA = max(griddatA$latitude) + 0.05
+
+
+## Create grid
+rA = raster(matrix(1:10000, 100, 100), xmx = xmxA, xmn = xmnA, ymx = ymxA, ymn = ymnA)
+
+
+## Format points
+ptsA = griddatA %>% 
+  dplyr::select(longitude, latitude) %>% 
+  rename(x = longitude, y = latitude) %>% 
+  as.data.frame()
+
+
+# Make a raster of zeroes like the input
+r2A = rA
+r2A[] = 0
+
+
+# Get the cell index for each point and make a table
+countsA = table(cellFromXY(rA, ptsA))
+
+
+# Fill in the raster with the counts from the cell index
+r2A[as.numeric(names(countsA))] = countsA
+
+
+## Change raster into data frame
+r3A <- as.data.frame(r2A, xy = TRUE) %>% 
+  rename(count = layer) %>% 
+  mutate(count2 = as.numeric(ifelse(count == 0, "NA", count)))
+
+
+## Calculate grid size
+distm(c(-68.66255, 44.46557), c(-68.66983, 44.46557), fun = distHaversine)
+distm(c(-68.70625, 44.47606), c(-68.69897, 44.47606), fun = distHaversine)
+
+
+## Read in the fee boundary shape file
+acad.fee <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp") %>% 
+  st_transform(4326)
+
+
+## Plot
+ggplot() +
+  geom_sf(fill = "gray", data = acad.bm) +
+  geom_tile(aes(x = x, y = y, fill = count2),
+            data = r3A %>% filter(!is.na(count2))) +
+  geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
+          data = acad.fee) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  labs(fill = "Observations") +
+  lims(x = c(-68.48, -67.99), y = c(44.17, 44.48)) +
+  scale_fill_viridis_b(breaks = c(1, 250, 500, 1000, 5000, 10000, 20000, 30000)) +
+  theme_minimal() +
+  theme(
+    legend.position = c(0.112, 0.818),
+    legend.margin = margin(c(5,5,10,6)),
+    legend.background = element_rect(color = "black", fill = "white", linewidth = 0.25),
+    panel.border = element_rect(color = "black", fill = "transparent", linewidth = 0.5),
+    plot.background = element_rect(color = "white"),
+    plot.margin = margin(8,13,4,10),
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank())
+
+
+## Save plot
+# ggsave("outputs/forpub/acad_heatmap_mdi.png", dpi = 700, width = 6, height = 5.4)
+
+
+## Plot Isle Au Haut
+ggplot() +
+  geom_sf(fill = "gray", data = acad.bm) +
+  geom_tile(aes(x = x, y = y, fill = count2),
+            data = r3A %>% filter(!is.na(count2))) +
+  geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
+          data = acad.fee) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  labs(fill = "Observations") +
+  lims(x = c(-68.7099, -68.42), y = c(43.95, 44.12)) +
+  scale_fill_viridis_b(breaks = c(1, 250, 500, 1000, 2500, 5000, 10000, 20000, 30000)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.border = element_rect(color = "black", fill = "transparent"),
+    plot.background = element_rect(color = "white"),
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank())
+
+
+## Save plot
+# ggsave("outputs/forpub/acad_heatmap_isleauhaut.png", dpi = 700, width = 6, height = 6)
+
+
+
+#------------------------------------------------#
+
+### KAWW ###
+
+## Combine all data
+griddatK <- bind_rows(inatK, ebdK) %>% 
+  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
+
+
+## Specify min/max for grid
+xmnK = min(griddatK$longitude) - 0.15
+xmxK = max(griddatK$longitude) + 0.15
+ymnK = min(griddatK$latitude) - 0.05
+ymxK = max(griddatK$latitude) + 0.05
+
+
+## Create grid
+rK = raster(matrix(1:2500, 50, 50), xmx = xmxK, xmn = xmnK, ymx = ymxK, ymn = ymnK)
+
+
+## Format points
+ptsK = griddatK %>% 
+  dplyr::select(longitude, latitude) %>% 
+  rename(x = longitude, y = latitude) %>% 
+  as.data.frame()
+
+
+# Make a raster of zeroes like the input
+r2K = rK
+r2K[] = 0
+
+
+# Get the cell index for each point and make a table
+countsK = table(cellFromXY(rK,ptsK))
+
+
+# Fill in the raster with the counts from the cell index
+r2K[as.numeric(names(countsK))] = countsK
+
+
+## Change raster into data frame
+r3K <- as.data.frame(r2K, xy = TRUE) %>% 
+  rename(count = layer) %>% 
+  mutate(count2 = as.numeric(ifelse(count == 0, "NA", count)))
+
+
+## Calculate grid size
+distm(c(-68.96239, 46.17133), c(-68.95120, 46.17133), fun = distHaversine)
+
+
+## Read in the fee boundary shape file
+kww.b <- sf::read_sf("data/kww_boundary/kww_boundary_polygon.shp") %>% 
+  st_transform(4326)
+
+
+## Plot
+ggplot() +
+  geom_sf(color = "black", fill = "white", linewidth = 0.7,
+          data = kww.b) +
+  geom_tile(aes(x = x, y = y, fill = count2),
+            data = r3K %>% filter(!is.na(count2))) +
+  geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
+          data = kww.b) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  labs(fill = "Observations") +
+  lims(x = c(-68.985, -68.385), y = c(45.78, 46.16)) +
+  scale_fill_viridis_b(breaks = c(1, 50, 100, 250, 500, 1000, 1500)) +
+  theme_minimal() +
+  theme(
+    legend.position = c(0.112, 0.818),
+    legend.margin = margin(c(5,5,10,6)),
+    legend.background = element_rect(color = "black", fill = "white", linewidth = 0.25),
+    panel.border = element_rect(color = "black", fill = "transparent", linewidth = 0.5),
+    plot.background = element_rect(color = "white"),
+    plot.margin = margin(8,13,4,10),
+    panel.background = element_rect(fill = "gray"),
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+## Save plot
+# ggsave("outputs/forpub/kaww_heatmap.png", dpi = 700, width = 6, height = 5.4)
+
+
+
+
+#------------------------------------------------#
+####          ACAD Taxonomic Summary          ####
+#------------------------------------------------#
+
+### eBird taxonomy stats ###
+
+## Read in the eBird taxonomy for merging with ebd
+etax <- read.csv("data/ebird_taxonomy_v2022.csv") %>% 
+  dplyr::select(scientific.name = SCI_NAME, order = ORDER1, family = FAMILY,
+                species.group = SPECIES_GROUP)
+
+
+## Join the two 
+ebdtaxA <- left_join(ebdA, etax, by = "scientific.name")
+
+
+## Total species
+ebdtaxA %>% 
+  filter(category == "species") %>% 
+  dplyr::select(scientific.name) %>% 
+  distinct()
+
+
+## Determine how many orders were recorded
+unique(ebdtaxA$order) # 19
+
+
+## Determine the percent of data made up by each order
+e_ordersA <- ebdtaxA %>% 
+  filter(order != "") %>% 
+  group_by(order) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(count = round((count / length(ebdA$scientific.name)) * 100, digits = 2))
+
+# write.csv(e_ordersA, "outputs/forpub/ebird_orders_table_acad.csv", row.names = F)
+
+
+## Calculate frequency of obs for each species
+ebdA %>% 
+  mutate(count = ifelse(count == "X", 1, count),
+         count = as.numeric(count)) %>% 
+  group_by(common.name, scientific.name) %>% 
+  summarize(frequency = round((length(scientific.name) / length(unique(ebdA$checklist.id)) * 100), 2)) %>% 
+  arrange(-frequency)
+
+
+
+#------------------------------------------------#
+
+
+### iNaturalist taxonomy stats
+
+## Total species
+i_sppA <- inatA %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  dplyr::select(scientific.name) %>% 
+  distinct()
+
+
+## Total orders
+i_ordersA <- inatA %>% 
+  filter(order != "" & quality.grade == "research") %>% 
+  dplyr::select(order) %>% 
+  distinct()
+
+
+## Total obs per kingdom
+i_kingdoms_obsA <- inatA %>% 
+  filter(kingdom != "") %>% 
+  group_by(kingdom) %>% 
+  summarise(count = length(kingdom)) %>% 
+  arrange(-count)
+  
+
+## Total species per kingdom
+i_kingdoms_sppA <- inatA %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  dplyr::select(scientific.name, kingdom) %>% 
+  distinct() %>% 
+  group_by(kingdom) %>% 
+  summarise(count = length(kingdom)) %>% 
+  arrange(-count)
+
+
+## Total research-grade obs per kingdom
+i_kingdoms_rgA <- inatA %>% 
+  filter(quality.grade == "research") %>% 
+  group_by(kingdom) %>% 
+  summarise(rg.count = length(scientific.name)) %>% 
+  arrange(-rg.count)
+
+bind_cols(i_kingdoms_rgA, i_kingdoms_obsA) %>% 
+  dplyr::select(kingdom = `kingdom...1`, rg.count, count) %>% 
+  mutate(prop = 100 * (rg.count / count)) %>% 
+  arrange(-prop)
+
+
+## Totals orders per kingdom
+# i_kingdoms_ordA <- inatA %>% 
+#   filter(order != "" & quality.grade == "research") %>% 
+#   dplyr::select(order, kingdom) %>% 
+#   distinct() %>% 
+#   group_by(kingdom) %>% 
+#   summarise(count = length(kingdom)) %>% 
+#   arrange(-count)
+
+
+## Total obs per order Animalia
+inatA %>% 
+  filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total species per order Animalia
+inatA %>% 
+  filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
+  dplyr::select(order, scientific.name) %>% 
+  distinct() %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total obs per order Plantae
+inatA %>% 
+  filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total species per order Plantae
+inatA %>% 
+  filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
+  dplyr::select(order, scientific.name) %>% 
+  distinct() %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total species level ids
+spidsA <- inatA %>% 
+  filter(scientific.name != "")
+
+
+length(spidsA$common.name) # 37,086
+length(spidsA$common.name) / length(inatA$common.name) * 100 # 71.73 %
+spidsA %>% filter(quality.grade == "research") # 28,522
+
+
+## Total observations per species
+sptotsA <- inatA %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  group_by(scientific.name) %>% 
+  summarise(total = length(scientific.name)) %>% 
+  arrange(-total)
+
+
+
+
+#------------------------------------------------#
+####          KAWW Taxonomic Summary          ####
+#------------------------------------------------#
+
+### eBird taxonomy stats ###
+
+## Join the tax data set from earlier with KAWW
+ebdtaxK <- left_join(ebdK, etax, by = "scientific.name")
+
+
+## Total species
+ebdtaxK %>% 
+  filter(category == "species") %>% 
+  dplyr::select(scientific.name) %>% 
+  distinct()
+
+
+## Determine how many orders were recorded
+unique(ebdtaxK$order) # 17
+
+
+## Determine the percent of data made up by each order
+e_ordersK <- ebdtaxK %>% 
+  filter(order != "") %>% 
+  group_by(order) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(count = round((count / length(ebdK$scientific.name)) * 100, digits = 2))
+
+# write.csv(e_ordersA, "outputs/forpub/ebird_orders_table_kaww.csv", row.names = F)
+
+
+## Calculate frequency of obs for each species
+ebdK%>% 
+  mutate(count = ifelse(count == "X", 1, count),
+         count = as.numeric(count)) %>% 
+  group_by(common.name, scientific.name) %>% 
+  summarize(frequency = round((length(scientific.name) / length(unique(ebdK$checklist.id)) * 100), 2)) %>% 
+  arrange(-frequency)
+
+
+
+#------------------------------------------------#
+
+
+### iNaturalist taxonomy stats
+
+## Total species
+i_sppK <- inatK %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  dplyr::select(scientific.name) %>% 
+  distinct()
+
+
+## Total orders
+i_ordersK <- inatK %>% 
+  filter(order != "" & quality.grade == "research") %>% 
+  dplyr::select(order) %>% 
+  distinct()
+
+
+## Total obs per kingdom
+i_kingdoms_obsK <- inatK %>% 
+  filter(kingdom != "") %>% 
+  group_by(kingdom) %>% 
+  summarise(count = length(kingdom)) %>% 
+  arrange(-count)
+
+
+## Total species per kingdom
+i_kingdoms_sppK <- inatK %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  dplyr::select(scientific.name, kingdom) %>% 
+  distinct() %>% 
+  group_by(kingdom) %>% 
+  summarise(count = length(kingdom)) %>% 
+  arrange(-count)
+
+
+## Total research-grade obs per kingdom
+i_kingdoms_rgK <- inatK %>% 
+  filter(quality.grade == "research") %>% 
+  group_by(kingdom) %>% 
+  summarise(rg.count = length(scientific.name)) %>% 
+  arrange(-rg.count)
+
+bind_cols(i_kingdoms_rgK, i_kingdoms_obsK %>% filter(kingdom != "Protozoa" & kingdom != "Viruses")) %>% 
+  dplyr::select(kingdom = `kingdom...1`, rg.count, count) %>% 
+  mutate(prop = 100 * (rg.count / count)) %>% 
+  arrange(-prop)
+
+
+## Total obs per order Animalia
+inatK %>% 
+  filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total species per order Animalia
+inatA %>% 
+  filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
+  dplyr::select(order, scientific.name) %>% 
+  distinct() %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total obs per order Plantae
+inatK %>% 
+  filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+## Total species per order Plantae
+inatK %>% 
+  filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
+  dplyr::select(order, scientific.name) %>% 
+  distinct() %>% 
+  group_by(order) %>%
+  summarise(count = length(order)) %>% 
+  arrange(-count)
+
+
+## Total species level ids
+spidsK <- inatK %>% 
+  filter(scientific.name != "")
+
+length(spidsK$common.name) # 1,555
+length(spidsK$common.name) / length(inatK$common.name) * 100 # 73.91 %
+spidsK %>% filter(quality.grade == "research") # 1,277
+
+
+## Total observations per species
+sptotsK <- inatK %>% 
+  filter(scientific.name != "" & quality.grade == "research") %>% 
+  group_by(scientific.name) %>% 
+  summarise(total = length(scientific.name)) %>% 
+  arrange(-total)
+
+
+
+
+#------------------------------------------------#
+####         Total Taxonomic Summary          ####
+#------------------------------------------------#
+
+### ACAD orders ###
+
+## Total orders in both ACAD data sets
+oeA <- ebdtaxA %>% 
+  dplyr::select(scientific.name, order)
+
+
+oiA <- inatA %>% 
+  filter(quality.grade == "research") %>% 
+  dplyr::select(scientific.name, order)
+
+
+oeiA <- bind_rows(oeA, oiA) 
+
+
+allordersA <- oeiA %>% 
+  filter(order != "") %>% 
+  group_by(order) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(percent = round((count / length(oeiA$scientific.name)) * 100, digits = 2))
+
+
+# write.csv(allorders, "outputs/forpub/all_orders_table.csv", row.names = F)
+
+
+
+#------------------------------------------------#
+
+### KAWW orders ###
+
+## Total orders in both KAWW data sets
+oeK <- ebdtaxK %>% 
+  dplyr::select(scientific.name, order)
+
+
+oiK <- inatK %>% 
+  filter(quality.grade == "research") %>% 
+  dplyr::select(scientific.name, order)
+
+
+oeiK <- bind_rows(oeK, oiK) 
+
+
+allordersK <- oeiK %>% 
+  filter(order != "") %>% 
+  group_by(order) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(percent = round((count / length(oeiK$scientific.name)) * 100, digits = 2))
+
+
+# write.csv(allorders, "outputs/forpub/all_orders_table.csv", row.names = F)
+
+
+
+#------------------------------------------------#
+
+### Total orders ###
+
+## Bind rows from ACAD and KAWW and calculate
+bind_rows(oeiA, oeiK) %>% 
+  group_by(order) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(percent = round((count / length(oeiK$scientific.name)) * 100, digits = 2))
+
+# 207 total orders
+
+
+
 
 #------------------------------------------------#
 ####           Watch List Species             ####
 #------------------------------------------------#
 
 ### ACAD data
+
 ## Create full data set with only research-grade grade observations
-map_inatA <- inat %>%
+map_inatA <- inatA %>%
   filter(quality.grade == "research")
 
-mapdat <- bind_rows(map_inat, ebd) %>% 
-  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
-  mutate(cat = "All observations")
-
-alldatmap <- bind_rows(inat, ebd) %>% 
+mapdatA <- bind_rows(map_inatA, ebdA) %>% 
   dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
   mutate(cat = "All observations")
 
 
 ## Run watch list function to get rare, pest, and T&E species
-watchlist_species(mapdat, "outputs")
+watchlist_species(mapdatA, "outputs/watchlist_acad")
 
 
 ### Load in the watch list csv files
 ## Pest species
-pests <- read.csv("outputs/invasive_pestslist.csv") %>% 
+pestsA <- read.csv("outputs/watchlist_acad/invasive_pestslist.csv") %>% 
   dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Invasive species observations")
 
+ptabA <- tibble(pestsA) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "pest/invasive")
+
+length(ptabA$scientific.name)
+
+
 ## Rare species
-rare <- read.csv("outputs/rare_specieslist.csv") %>% 
+rareA <- read.csv("outputs/watchlist_acad/rare_specieslist.csv") %>% 
   dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Rare native species observations")
 
+rtabA <- tibble(rareA) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "rare native")
+
+length(rtabA$scientific.name)
+
+
 ## T&E species
-tande <- read.csv("outputs/te_specieslist.csv") %>% 
+tandeA <- read.csv("outputs/watchlist_acad/te_specieslist.csv") %>% 
   dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Threatened/endangered species observations")
+
+tetabA <- tibble(tandeA) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "threatened/endangered")
+
+length(tetabA$scientific.name)
+
+
+
+## Create table of the watchlist species
+ptr_tableA <- bind_rows(ptabA, tetabA, rtabA)
+
+write.csv(ptr_tableA, "outputs/forpub/watchlist_table_acad.csv", row.names = F)
+
+
+
+## What percent of watchlist species have been detected?
+wldetA <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+  mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableA$scientific.name, "yes", "no"))
+
+
+nrow(wldetA %>% filter(citsci.detect == "yes")) / nrow(wldetA)
+
+
+
+#------------------------------------------------#
+
+### KAWW data
+
+## Create full data set with only research-grade grade observations
+map_inatK <- inatK %>%
+  filter(quality.grade == "research")
+
+mapdatK <- bind_rows(map_inatK, ebdK) %>% 
+  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+  mutate(cat = "All observations")
+
+
+## Run watch list function to get rare, pest, and T&E species
+watchlist_species(mapdatK, "outputs/watchlist_kaww")
+
+
+### Load in the watch list csv files
+## Pest species
+pestsK <- read.csv("outputs/watchlist_kaww/invasive_pestslist.csv") %>% 
+  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  mutate(cat = "Invasive species observations")
+
+ptabK <- tibble(pestsK) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "pest/invasive")
+
+length(ptabK$scientific.name)
+
+
+## Rare species
+rareK <- read.csv("outputs/watchlist_kaww/rare_specieslist.csv") %>% 
+  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  mutate(cat = "Rare native species observations")
+
+rtabK <- tibble(rareK) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "rare native")
+
+length(rtabK$scientific.name)
+
+
+## T&E species
+tandeK <- read.csv("outputs/watchlist_kaww/te_specieslist.csv") %>% 
+  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  mutate(cat = "Threatened/endangered species observations")
+
+tetabK <- tibble(tandeK) %>% 
+  group_by(scientific.name) %>% 
+  summarise(count = length(scientific.name)) %>% 
+  arrange(-count) %>% 
+  mutate(category = "threatened/endangered")
+
+length(tetabK$scientific.name)
+
+
+
+## Create table of the watchlist species
+ptr_tableK <- bind_rows(ptabK, tetabK, rtabK)
+
+write.csv(ptr_tableK, "outputs/forpub/watchlist_table_kaww.csv", row.names = F)
+
+
+
+## What percent of watchlist species have been detected?
+wldetK <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+  mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableK$scientific.name, "yes", "no"))
+
+
+nrow(wldetK %>% filter(citsci.detect == "yes")) / nrow(wldetK)
+
+
+
+
+
 
 
 
