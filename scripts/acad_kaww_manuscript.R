@@ -547,7 +547,7 @@ ckcombA <- bind_rows(tempckA, ck_compA)
 ## Plot 
 ckcombA %>% 
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
-  geom_line(size = 0.8) +
+  geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of checklists") +
   scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2022-12-31"), by = "2 years"), 
@@ -566,6 +566,7 @@ ckcombA %>%
   scale_color_manual(values = c("Total checklists" = "gray50", "Complete checklists" = "black")) +
   scale_alpha_manual(values = c("Total checklists" = 0.7, "Complete checklists" = 1)) +
   scale_linetype_manual(values = c("Total checklists" = 1, "Complete checklists" = 1))
+
 
 ## Export figure  
 # ggsave(paste0("outputs/forpub/monthly_obs_ebird_acad", str_replace_all(today(), "-", ""), ".png"),
@@ -681,7 +682,7 @@ tempcoA <- bind_rows(alltempA, rgtempA)
 ## Plot 
 tempcoA %>% 
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
-  geom_line(size = 0.8) +
+  geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of observations") +
   scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2022-12-31"), by = "2 years"), 
@@ -849,7 +850,7 @@ ckcombK <- bind_rows(tempckK, ck_compK)
 ## Plot 
 ckcombK %>% 
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
-  geom_line(size = 0.8) +
+  geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of checklists") +
   scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
@@ -984,7 +985,7 @@ tempcoK <- bind_rows(alltempK, rgtempK)
 ## Plot 
 tempcoK %>% 
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
-  geom_line(size = 0.8) +
+  geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of observations") +
   scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
@@ -1736,11 +1737,17 @@ write.csv(ptr_tableA, "outputs/forpub/watchlist_table_acad.csv", row.names = F)
 
 ## What percent of watchlist species have been detected?
 wldetA <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+  filter(in.anp == "P" | in.anp == "Y") %>% 
   mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableA$scientific.name, "yes", "no"))
 
 
 nrow(wldetA %>% filter(citsci.detect == "yes")) / nrow(wldetA)
 
+
+nparkA <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+  filter(in.anp == "N") %>% 
+  mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableA$scientific.name, "yes", "no")) %>% 
+  filter(citsci.detect == "yes")
 
 
 #------------------------------------------------#
