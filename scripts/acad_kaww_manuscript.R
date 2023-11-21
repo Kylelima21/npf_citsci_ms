@@ -595,7 +595,7 @@ sd(earlyeA$tot.obs) / sqrt(length(earlyeA$tot.obs))
 
 ## Calculate average checklists/month to current
 toteA <- ebirdavgA %>% 
-  filter(date >= "2000-01-01")
+  filter(date >= "2010-01-01")
 mean(toteA$tot.obs)
 sd(toteA$tot.obs) / sqrt(length(toteA$tot.obs))
 
@@ -730,7 +730,7 @@ sd(earlyiA$tot.obs)/sqrt(length(earlyiA$tot.obs))
 
 ## Calculate average obs/month to current
 totiA <- inatavgA %>% 
-  filter(date >= "2000-01-01")
+  filter(date >= "2014-01-01")
 mean(totiA$tot.obs)
 sd(totiA$tot.obs)/sqrt(length(totiA$tot.obs))
 
@@ -1086,14 +1086,14 @@ griddatA <- bind_rows(inatA, ebdA) %>%
 
 
 ## Specify min/max for grid
-xmnA = min(griddatA$longitude) - 0.05
-xmxA = max(griddatA$longitude) + 0.05
-ymnA = min(griddatA$latitude) - 0.05
-ymxA = max(griddatA$latitude) + 0.05
+xmnA = min(griddatA$longitude) - 0.01
+xmxA = max(griddatA$longitude) + 0.01
+ymnA = min(griddatA$latitude) - 0.01
+ymxA = max(griddatA$latitude) + 0.01
 
 
 ## Create grid
-rA = raster(matrix(1:10000, 100, 100), xmx = xmxA, xmn = xmnA, ymx = ymxA, ymn = ymnA)
+rA = raster(matrix(1:8649, 93, 93), xmx = xmxA, xmn = xmnA, ymx = ymxA, ymn = ymnA)
 
 
 ## Format points
@@ -1120,11 +1120,6 @@ r2A[as.numeric(names(countsA))] = countsA
 r3A <- as.data.frame(r2A, xy = TRUE) %>% 
   rename(count = layer) %>% 
   mutate(count2 = as.numeric(ifelse(count == 0, "NA", count)))
-
-
-## Calculate grid size
-distm(c(-68.66255, 44.46557), c(-68.66983, 44.46557), fun = distHaversine)
-distm(c(-68.70625, 44.47606), c(-68.69897, 44.47606), fun = distHaversine)
 
 
 ## Read in the fee boundary shape file
@@ -1190,6 +1185,30 @@ ggplot() +
 
 
 
+### Spatial stats
+## Calculate grid size
+head(r3A)
+distm(c(-68.66641, 44.43629), c(-68.65944, 44.43629), fun = distHaversine)
+
+
+## Calculate percent of cells with observations
+cobsA <- r3A %>% 
+  mutate(longitude.keep = x,
+         latitude.keep = y) %>% 
+  sf::st_as_sf(., coords = c("x","y"), crs = sf::st_crs(acad.bounds))
+
+
+## Filter to those cells that intersect with the KAWW polygon
+filtcobsA <- sf::st_join(cobsA, acad.bounds, left = F) %>% 
+  st_set_geometry(., NULL) %>% 
+  dplyr::select(everything(), latitude = latitude.keep, longitude = longitude.keep)
+
+
+## Calculate the percentage of cells with observations
+length((filtcobsA %>% filter(count > 0))$count) / length(filtcobsA$count) * 100 # 95.96929
+
+
+
 #------------------------------------------------#
 
 ### KAWW ###
@@ -1200,14 +1219,14 @@ griddatK <- bind_rows(inatK, ebdK) %>%
 
 
 ## Specify min/max for grid
-xmnK = min(griddatK$longitude) - 0.15
-xmxK = max(griddatK$longitude) + 0.15
-ymnK = min(griddatK$latitude) - 0.05
-ymxK = max(griddatK$latitude) + 0.05
+xmnK = min(griddatK$longitude) - 0.01
+xmxK = max(griddatK$longitude) + 0.005
+ymnK = min(griddatK$latitude) - 0.004
+ymxK = max(griddatK$latitude) + 0.008
 
 
 ## Create grid
-rK = raster(matrix(1:2500, 50, 50), xmx = xmxK, xmn = xmnK, ymx = ymxK, ymn = ymnK)
+rK = raster(matrix(1:2204, 58, 38), xmx = xmxK, xmn = xmnK, ymx = ymxK, ymn = ymnK)
 
 
 ## Format points
@@ -1217,16 +1236,16 @@ ptsK = griddatK %>%
   as.data.frame()
 
 
-# Make a raster of zeroes like the input
+## Make a raster of zeroes like the input
 r2K = rK
 r2K[] = 0
 
 
-# Get the cell index for each point and make a table
+## Get the cell index for each point and make a table
 countsK = table(cellFromXY(rK,ptsK))
 
 
-# Fill in the raster with the counts from the cell index
+## Fill in the raster with the counts from the cell index
 r2K[as.numeric(names(countsK))] = countsK
 
 
@@ -1234,10 +1253,6 @@ r2K[as.numeric(names(countsK))] = countsK
 r3K <- as.data.frame(r2K, xy = TRUE) %>% 
   rename(count = layer) %>% 
   mutate(count2 = as.numeric(ifelse(count == 0, "NA", count)))
-
-
-## Calculate grid size
-distm(c(-68.96239, 46.17133), c(-68.95120, 46.17133), fun = distHaversine)
 
 
 ## Read in the fee boundary shape file
@@ -1256,7 +1271,7 @@ ggplot() +
   scale_y_continuous(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
   labs(fill = "Observations") +
-  lims(x = c(-68.985, -68.385), y = c(45.78, 46.16)) +
+  lims(x = c(-68.965, -68.47), y = c(45.82, 46.13)) +
   scale_fill_viridis_b(breaks = c(1, 50, 100, 250, 500, 1000, 1500)) +
   theme_minimal() +
   theme(
@@ -1273,8 +1288,33 @@ ggplot() +
     axis.ticks = element_blank()
   )
 
+
 ## Save plot
 # ggsave("outputs/forpub/kaww_heatmap.png", dpi = 700, width = 6, height = 5.4)
+
+
+
+### Spatial stats
+## Calculate grid size
+head(r3K)
+distm(c(-68.82437, 46.13063), c(-68.81715, 46.13063), fun = distHaversine)
+
+
+## Calculate percent of cells with observations
+cobsK <- r3K %>% 
+  mutate(longitude.keep = x,
+         latitude.keep = y) %>% 
+  sf::st_as_sf(., coords = c("x","y"), crs = sf::st_crs(kaww.bounds))
+
+
+## Filter to those cells that intersect with the KAWW polygon
+filtcobsK <- sf::st_join(cobsK, kaww.bounds, left = F) %>% 
+  st_set_geometry(., NULL) %>% 
+  dplyr::select(everything(), latitude = latitude.keep, longitude = longitude.keep)
+
+
+## Calculate the percentage of cells with observations
+length((filtcobsK %>% filter(count > 0))$count) / length(filtcobsK$count) * 100 # 28.57143
 
 
 
