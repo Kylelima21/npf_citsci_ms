@@ -27,6 +27,7 @@ library(raster)
 library(geosphere)
 library(png)
 library(grid)
+library(scales)
 
 source("scripts/analysis_functions.R")
 
@@ -74,11 +75,13 @@ ebdA <- tibble(read.delim("data/ebd_US-ME_relFeb-2023.txt", header = T, quote = 
          'distance.km'='EFFORT.DISTANCE.KM') %>% 
   mutate(park = "ACAD") %>% 
   filter(obs.date <= "2022-12-31") %>% 
+  filter(checklist.id != "S56409710") %>% 
   filter_nps(., "Acadia National Park", "latitude", "longitude")
 
 
 ## Read in the ACAD basemap for figures
 acad.bm <- sf::read_sf("data/acad_boundary/formapping.shp")
+
 
 ## Read in the ACAD boundary layer
 acad.bounds <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp")
@@ -158,7 +161,7 @@ ggplot(data = states) +
 
 
 ## Export figure
-ggsave("outputs/forpub/study_area_new_england.png", height = 5.28, width = 5.28, units = "in", dpi = 500)
+# ggsave("outputs/forpub/pptx_and_subfigs/study_area_new_england.png", height = 5.28, width = 5.28, units = "in", dpi = 500)
 
 
 
@@ -181,10 +184,10 @@ acadmap
 
 
 ## Export figure
-saveWidget(acadmap, "outputs/temp.html", selfcontained = FALSE)
-webshot("outputs/temp.html", file = "outputs/forpub/acad_study_area.png",
-        vwidth = 700, vheight = 500,
-        cliprect = "viewport")
+# saveWidget(acadmap, "outputs/temp.html", selfcontained = FALSE)
+# webshot("outputs/temp.html", file = "outputs/forpub/pptx_and_subfigs/study_area_acad.png",
+#         vwidth = 700, vheight = 500,
+#         cliprect = "viewport")
 
 
 
@@ -215,10 +218,10 @@ kawwmap
 
 
 ## Export figure
-saveWidget(acadmap, "outputs/temp.html", selfcontained = FALSE)
-webshot("outputs/temp.html", file = "outputs/forpub/kaww_study_area.png",
-        vwidth = 700, vheight = 500,
-        cliprect = "viewport")
+# saveWidget(acadmap, "outputs/temp.html", selfcontained = FALSE)
+# webshot("outputs/temp.html", file = "outputs/forpub/pptx_and_subfigs/study_area_kaww.png",
+#         vwidth = 700, vheight = 500,
+#         cliprect = "viewport")
 
 
 
@@ -296,7 +299,7 @@ bind_rows(ebird_splist, inat_splist) %>%
 
 
 ## Total number of observations
-length(bind_rows(inat, ebd)$common.name) # 538,627
+length(bind_rows(inat, ebd)$common.name) # 538,625
 
 
 
@@ -347,33 +350,34 @@ inatcumob <- bind_rows(cumulativeobA, cumulativeobK)
 
 
 ## Plot
-inatcumob %>% 
+inatone <- inatcumob %>% 
   ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
   geom_line(linewidth = 0.8) +
   geom_dl(data = subset(cumulativeobA, year == 2022), 
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
-          method = list(dl.trans(x = x + 0.2), "last.points")) +
+          method = list(cex = 1.45, dl.trans(y = y, x = x - 1.8), "last.points")) +
   geom_dl(data = subset(cumulativeobK, year == 2022), 
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
-          method = list(dl.trans(x = x + 0.2), "last.points")) +
+          method = list(cex = 1.45, dl.trans(y = y + 0.4, x = x - 0.2), "last.points")) +
   theme_classic() +
-  labs(x = "Year", y = "Count (n)") +
-  scale_x_continuous(limits = c(1995, 2026), breaks = seq(1990, 2024, by = 5)) +
-  theme(legend.position = c(0.13, 0.85),
+  labs(x = "Year", y = "iNaturalist observers") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(limits = c(1995, 2023), breaks = seq(1990, 2023, by = 5)) +
+  theme(legend.position = "none", #c(0.18, 0.85),
         legend.background = element_rect(color = "black", linewidth = 0.4),
-        legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.title = element_text(face = "bold", size = 17),
+        legend.text = element_text(color = "black", size = 17,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 17),
+        axis.title = element_text(color = "black", size = 17),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
-  scale_color_manual(values = c("ACAD" = "gray60", "KAWW" = "black")) +
-  scale_linetype_manual(values = c("ACAD" = 1, "KAWW" = 6))
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
 
 
 ## Export figure
-ggsave(paste0("outputs/forpub/final_cumulative_inat_", str_replace_all(today(), "-", ""), ".png"),
-       height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/final_cumulative_inat_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
 
 
 
@@ -421,33 +425,34 @@ ebdcumob <- bind_rows(cumulativeobeA, cumulativeobeK)
 
 
 ## Plot
-ebdcumob %>% 
+ebdone <- ebdcumob %>% 
   ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
   geom_line(linewidth = 0.8) +
   geom_dl(data = subset(cumulativeobeA, year == 2022), 
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
-          method = list(dl.trans(x = x + 0.2), "last.points")) +
+          method = list(cex = 1.45, dl.trans(y = y, x = x - 1.8), "last.points")) +
   geom_dl(data = subset(cumulativeobeK, year == 2022), 
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
-          method = list(dl.trans(x = x + 0.2), "last.points")) +
+          method = list(cex = 1.45, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
   theme_classic() +
-  labs(x = "Year", y = "Count (n)") +
+  labs(x = "Year", y = "eBird observers") +
+  scale_y_continuous(labels = comma) +
   scale_x_continuous(limits = c(1960, 2026), breaks = seq(1960, 2026, by = 10)) +
-  theme(legend.position = c(0.13, 0.85),
+  theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", linewidth = 0.4),
-        legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.title = element_text(face = "bold", size = 17),
+        legend.text = element_text(color = "black", size = 17,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 17),
+        axis.title = element_text(color = "black", size = 17),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
-  scale_color_manual(values = c("ACAD" = "gray60", "KAWW" = "black")) +
-  scale_linetype_manual(values = c("ACAD" = 1, "KAWW" = 6))
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
 
 
 ## Export figure
-ggsave(paste0("outputs/forpub/final_cumulative_ebd_", str_replace_all(today(), "-", ""), ".png"),
-       height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/final_cumulative_ebd_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 500)
 
 
 
@@ -468,11 +473,95 @@ ebdobstot <- bind_rows(ebdA, ebdK) %>%
   dplyr::select(observer.id) %>% 
   distinct()
 
-# 6,637
+# 6,636
 
 
 ## Sum
-length(inatobstot$user.id) + length(ebdobstot$observer.id) # 11,382
+length(inatobstot$user.id) + length(ebdobstot$observer.id) # 11,381
+
+
+
+
+#------------------------------------------------#
+####      Observations Observers Figure       ####
+#------------------------------------------------#
+
+### Creating the observations part of this four panel figure
+## Calculate cumulative eBird observations
+totalebd <- bind_rows(ebdA, ebdK) %>% 
+  mutate(year = year(obs.date)) %>% 
+  group_by(park, year) %>% 
+  summarise(cumsum = length(scientific.name)) %>% 
+  mutate(cumsum = cumsum(cumsum))
+
+
+## Plot
+totebd <- totalebd %>% 
+  ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
+  geom_line(linewidth = 0.8) +
+  geom_dl(data = subset(totalebd, year == 2022 & park == "ACAD"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.45, dl.trans(y = y, x = x - 2.5), "last.points")) +
+  geom_dl(data = subset(totalebd, year == 2022 & park == "KAWW"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.45, dl.trans(y = y + 0.4, x = x - 0.8), "last.points")) +
+  theme_classic() +
+  labs(x = "Year", y = "eBird observations") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(limits = c(1960, 2027), breaks = seq(1960, 2027, by = 10)) +
+  theme(legend.position = "none", #c(0.18, 0.85),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
+        legend.title = element_text(face = "bold", size = 17),
+        legend.text = element_text(color = "black", size = 17,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 17),
+        axis.title = element_text(color = "black", size = 17),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
+
+
+## Calculate cumulative inat observations
+totalinat <- bind_rows(inatA, inatK) %>% 
+  group_by(park, year) %>% 
+  summarise(cumsum = length(scientific.name)) %>% 
+  mutate(cumsum = cumsum(cumsum))
+
+
+## Plot
+totinat <- totalinat %>% 
+  ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
+  geom_line(linewidth = 0.8) +
+  geom_dl(data = subset(totalinat, year == 2022 & park == "ACAD"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.45, dl.trans(y = y, x = x - 2.1), "last.points")) +
+  geom_dl(data = subset(totalinat, year == 2022 & park == "KAWW"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.45, dl.trans(y = y + 0.4, x = x - 0.7), "last.points")) +
+  theme_classic() +
+  labs(x = "Year", y = "iNaturalist observations") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(limits = c(1995, 2025), breaks = seq(1990, 2024, by = 5)) +
+  theme(legend.position = "none", #c(0.18, 0.85),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
+        legend.title = element_text(face = "bold", size = 17),
+        legend.text = element_text(color = "black", size = 17,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 17),
+        axis.title = element_text(color = "black", size = 17),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
+
+
+
+## Combine to make a four panel figure
+plot_grid(ebdone, inatone, totebd, totinat, nrow = 2, labels = c('a)', 'b)', 'c)', 'd)'), align = "h", label_size = 18)
+
+
+## Save
+# ggsave(paste0("outputs/forpub/figure_observations_observers.png"),
+#                height = 10, width = 13.5, units = "in", dpi = 700)
 
 
 
@@ -485,7 +574,7 @@ length(inatobstot$user.id) + length(ebdobstot$observer.id) # 11,382
 
 ### Data set summaries
 ## All observations
-length(ebdA$common.name) # 472,362
+length(ebdA$common.name) # 472,360
 
 
 ## Total checklists
@@ -496,7 +585,7 @@ paste0("There have been ", length(ebird_chkA$checklist.id), " checklists submitt
 
 
 ## Average checklists per observer
-length(ebird_chkA$checklist.id) / length(unique(ebdA$observer.id)) # 6.954525
+length(ebird_chkA$checklist.id) / length(unique(ebdA$observer.id)) # 6.95543
 
 
 ## Get all complete checklists
@@ -759,7 +848,7 @@ sd(winteriA$tot.obs)/sqrt(length(winteriA$tot.obs))
 ### Total park data set ###
 
 ## Total number of ACAD citsci observations
-length(bind_rows(inatA, ebdA)$common.name) # 524,065
+length(bind_rows(inatA, ebdA)$common.name) # 524,063
 
 
 ## Percent of ACAD obs that are from iNaturalist
@@ -774,8 +863,8 @@ length(ebdA$common.name) / length(bind_rows(inatA, ebdA)$common.name) * 100 # 90
 compobsA <- ebdA %>% 
   filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental")
 
-(length(compobsA$common.name) + length(rgA$common.name)) / length(bind_rows(inatA, ebdA)$common.name)
-# 0.8452635
+(length(compobsA$common.name) + length(rgA$common.name)) / length(bind_rows(inatA, ebdA)$common.name) * 100
+# 84.52667
 
 
 
@@ -1154,7 +1243,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/acad_heatmap_mdi.png", dpi = 700, width = 6, height = 5.4)
+# ggsave("outputs/forpub/heatmap_acad_mdi.png", dpi = 700, width = 6, height = 5.4)
 
 
 ## Plot Isle Au Haut
@@ -1181,7 +1270,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/acad_heatmap_isleauhaut.png", dpi = 700, width = 6, height = 6)
+# ggsave("outputs/forpub/heatmap_acad_isleauhaut.png", dpi = 700, width = 6, height = 6)
 
 
 
@@ -1290,7 +1379,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/kaww_heatmap.png", dpi = 700, width = 6, height = 5.4)
+# ggsave("outputs/forpub/heatmap_kaww.png", dpi = 700, width = 6, height = 5.4)
 
 
 
@@ -1353,8 +1442,6 @@ e_ordersA <- ebdtaxA %>%
   summarise(count = length(scientific.name)) %>% 
   arrange(-count) %>% 
   mutate(count = round((count / length(ebdA$scientific.name)) * 100, digits = 2))
-
-# write.csv(e_ordersA, "outputs/forpub/ebird_orders_table_acad.csv", row.names = F)
 
 
 ## Calculate frequency of obs for each species
@@ -1656,7 +1743,7 @@ allordersA <- oeiA %>%
   mutate(percent = round((count / length(oeiA$scientific.name)) * 100, digits = 2))
 
 
-# write.csv(allorders, "outputs/forpub/all_orders_table.csv", row.names = F)
+# write.csv(allorders, "outputs/forpub/table_all_orders.csv", row.names = F) ## THIS DOES WORK
 
 
 
@@ -1701,6 +1788,224 @@ bind_rows(oeiA, oeiK) %>%
   mutate(percent = round((count / length(oeiK$scientific.name)) * 100, digits = 2))
 
 # 207 total orders
+
+
+
+#------------------------------------------------#
+
+### Total species by park figure ###
+
+## Filter data sets to necessary info
+iKcumsp <- inatK %>% 
+  filter(quality.grade == "research" & scientific.name != "") %>% 
+  dplyr::select(scientific.name, observed.on, park)
+
+eKcumsp <- ebdK %>% 
+  filter(category == "species") %>% 
+  dplyr::select(scientific.name, observed.on = obs.date, park)
+
+iAcumsp <- inatA %>% 
+  filter(quality.grade == "research" & scientific.name != "") %>% 
+  dplyr::select(scientific.name, observed.on, park)
+
+eAcumsp <- ebdA %>% 
+  filter(category == "species") %>% 
+  dplyr::select(scientific.name, observed.on = obs.date, park)
+
+
+## Calculate cumulative species totals for iNat in both parks
+icumulativespp <- bind_rows(iKcumsp, iAcumsp) %>% 
+  group_by(scientific.name, park) %>% 
+  filter(observed.on == min(observed.on)) %>% 
+  slice(1) %>% # takes the first occurrence if there is a tie
+  ungroup() %>% 
+  mutate(year = year(observed.on)) %>% 
+  group_by(year, park) %>% 
+  summarise(tot.obs = length(scientific.name)) %>%
+  ungroup() %>% 
+  arrange(park, year) %>% 
+  group_by(park) %>% 
+  mutate(cumsum = cumsum(tot.obs)) %>% 
+  dplyr::select(year, cumsum, park)
+
+
+## Plot 
+icumplot <- icumulativespp %>% 
+  ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
+  geom_line(linewidth = 0.8) +
+  geom_dl(data = subset(icumulativespp, year == 2022 & park == "ACAD"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.3, dl.trans(y = y, x = x - 1.7), "last.points")) +
+  geom_dl(data = subset(icumulativespp, year == 2022 & park == "KAWW"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.3, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
+  theme_classic() +
+  labs(x = "Year", y = "Cumulative iNaturalist species") +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(limits = c(1975, 2027), breaks = seq(1970, 2027, by = 10)) +
+  theme(legend.position = "none", #c(0.18, 0.85),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
+        legend.title = element_text(face = "bold", size = 15),
+        legend.text = element_text(color = "black", size = 15,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 15),
+        axis.title = element_text(color = "black", size = 15),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
+
+
+
+## Calculate cumulative species totals for eBird in both parks
+ecumulativespp <- bind_rows(eKcumsp, eAcumsp) %>% 
+  group_by(scientific.name, park) %>% 
+  filter(observed.on == min(observed.on)) %>% 
+  slice(1) %>% # takes the first occurrence if there is a tie
+  ungroup() %>% 
+  mutate(year = year(observed.on)) %>% 
+  group_by(year, park) %>% 
+  summarise(tot.obs = length(scientific.name)) %>%
+  ungroup() %>% 
+  arrange(park, year) %>% 
+  group_by(park) %>% 
+  mutate(cumsum = cumsum(tot.obs)) %>% 
+  dplyr::select(year, cumsum, park)
+
+
+## Plot
+ecumplot <- ecumulativespp %>% 
+  ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
+  geom_line(linewidth = 0.8) +
+  geom_dl(data = subset(ecumulativespp, year == 2021 & park == "ACAD"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.3, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
+  geom_dl(data = subset(ecumulativespp, year == 2022 & park == "KAWW"),
+          aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
+          method = list(cex = 1.3, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
+  theme_classic() +
+  labs(x = "Year", y = "Cumulative eBird species") +
+  scale_y_continuous(labels = comma, limits = c(0, 350)) +
+  scale_x_continuous(limits = c(1955, 2027), breaks = seq(1950, 2027, by = 10)) +
+  theme(legend.position = c(0.18, 0.85),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
+        legend.title = element_text(face = "bold", size = 15),
+        legend.text = element_text(color = "black", size = 15,  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = 15),
+        axis.title = element_text(color = "black", size = 15),
+        axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
+        axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm"))) +
+  scale_color_manual("NPS Unit", values = c("ACAD" = "gray60", "KAWW" = "black")) +
+  scale_linetype_manual("NPS Unit", values = c("ACAD" = 1, "KAWW" = 6))
+
+
+## Combine to make a two panel figure
+plot_grid(ecumplot, icumplot, nrow = 2, labels = c('a)', 'b)'), align = "h", label_size = 15)
+
+
+## Save
+# ggsave(paste0("outputs/forpub/figure_species_accumulation.png"),
+#        height = 9, width = 6, units = "in", dpi = 700)
+
+
+
+#------------------------------------------------#
+
+### Research grade iNaturalist observations by kingdom ###
+
+## Table for ACAD
+kingtabA <- inatA %>% 
+  filter(kingdom != "") %>% 
+  group_by(kingdom) %>% 
+  summarize(total.obs = length(scientific.name),
+            rg.obs = length(which(quality.grade == "research"))) %>% 
+  mutate(percent.rg = round(100*(rg.obs/total.obs), digits = 0),
+         park = "ACAD")
+
+
+## Table for KAWW 
+kingtabK <- inatK %>% 
+  filter(kingdom != "") %>% 
+  group_by(kingdom) %>% 
+  summarize(total.obs = length(scientific.name),
+            rg.obs = length(which(quality.grade == "research"))) %>% 
+  mutate(percent.rg = round(100*(rg.obs/total.obs), digits = 0),
+         park = "KAWW")
+
+
+## Combine tables and format
+rgkingtab <- bind_rows(kingtabA, kingtabK) %>% 
+  arrange(park, -percent.rg)
+
+
+## Write out
+# write.csv(rgkingtab, "outputs/forpub/table_rg_kingdoms.csv", row.names = F)
+
+
+
+#------------------------------------------------#
+
+### Taxonomic diversity ###
+
+taxtabeA <- ebdtaxA %>% 
+  dplyr::select(common.name, scientific.name, category, order, family) %>% 
+  mutate(family = str_replace(family, "\\s\\(.*$", ""),
+         kingdom = "Animalia",
+         phylum = "Chordata",
+         class = "Aves") %>% 
+  dplyr::select(common.name:category, kingdom:class, order, family)
+
+
+taxtabiA <- inatA %>% 
+  filter(quality.grade == "research") %>% 
+  dplyr::select(common.name, scientific.name, kingdom:family)
+
+
+taxtabA <- bind_rows(taxtabeA, taxtabiA)
+
+
+length(unique((taxtabA %>% filter(kingdom != ""))$kingdom))
+length(unique((taxtabA %>% filter(phylum != ""))$phylum))
+length(unique((taxtabA %>% filter(class != ""))$class))
+length(unique((taxtabA %>% filter(order != ""))$order))
+length(unique((taxtabA %>% filter(family != ""))$family))
+
+
+
+## Create data for phylogram
+# testdat <- inatK %>% 
+#   filter(kingdom != "") %>% 
+#   group_by(kingdom) %>% 
+#   mutate(kingdom.id = cur_group_id()) %>% 
+#   group_by(phylum) %>% 
+#   mutate(phylum.id = cur_group_id()) %>% 
+#   group_by(class) %>% 
+#   mutate(class.id = cur_group_id()) %>% 
+#   group_by(order) %>% 
+#   mutate(order.id = cur_group_id()) %>% 
+#   group_by(family) %>% 
+#   mutate(family.id = cur_group_id()) %>%
+#   group_by(genus) %>% 
+#   mutate(genus.id = cur_group_id()) %>% 
+#   ungroup() %>% 
+#   filter(kingdom == "Fungi" | kingdom == "Animalia") %>% 
+#   dplyr::select(family, kingdom.id:family.id) %>% 
+#   distinct() %>% 
+#   filter(family != "") %>% 
+#   column_to_rownames(var = "family")
+#   
+#   
+#   
+#   dplyr::select(scientific.name, kingdom.id:genus.id) %>% 
+#   distinct() %>% 
+#   filter(scientific.name != "") %>% 
+#   column_to_rownames(var = "scientific.name")
+
+
+## Compute distances and hierarchical clustering
+# dd <- dist(scale(testdat), method = "euclidean")
+# hc <- hclust(dd, method = "ward.D2")
+# 
+# plot(as.phylo(hc), type = "fan")
 
 
 
@@ -1771,7 +2076,7 @@ length(tetabA$scientific.name)
 ## Create table of the watchlist species
 ptr_tableA <- bind_rows(ptabA, tetabA, rtabA)
 
-write.csv(ptr_tableA, "outputs/forpub/watchlist_table_acad.csv", row.names = F)
+# write.csv(ptr_tableA, "outputs/forpub/table_watchlist_acad.csv", row.names = F)
 
 
 
@@ -1788,6 +2093,7 @@ nparkA <- read_excel("data/acad_watchlist_species.xlsx") %>%
   filter(in.anp == "N") %>% 
   mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableA$scientific.name, "yes", "no")) %>% 
   filter(citsci.detect == "yes")
+
 
 
 #------------------------------------------------#
@@ -1854,7 +2160,7 @@ length(tetabK$scientific.name)
 ## Create table of the watchlist species
 ptr_tableK <- bind_rows(ptabK, tetabK, rtabK)
 
-write.csv(ptr_tableK, "outputs/forpub/watchlist_table_kaww.csv", row.names = F)
+# write.csv(ptr_tableK, "outputs/forpub/table_watchlist_kaww.csv", row.names = F)
 
 
 
