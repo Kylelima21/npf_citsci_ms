@@ -7,29 +7,30 @@
 ####           Packages Required              ####
 #------------------------------------------------#
 
+## Call packages
 library(tidyverse)
-library(data.table)
-library(auk)
-library(lubridate)
-library(ggplot2)
-library(leaflet)
-library(leaflet.extras)
-library(htmlwidgets)
-library(webshot2)
+library(conflicted)
 library(sf)
 library(ggmap)
-library(lwgeom)
-library(purrr)
+library(leaflet)
+library(htmlwidgets)
+library(webshot2)
 library(directlabels)
-library(cowplot)
-library(readxl)
-library(raster)
-library(geosphere)
-library(png)
-library(grid)
 library(scales)
+library(cowplot)
+library(raster) 
+library(geosphere)
+library(readxl)
+library(plotly)
 
+
+## Source the function script
 source("scripts/analysis_functions.R")
+
+
+## Specify the functions from dplyr
+conflicts_prefer(dplyr::select)
+conflicts_prefer(dplyr::filter)
 
 
 
@@ -47,11 +48,11 @@ inatA <- tibble(read.csv("data/acad_inat_obs_20231107.csv")) %>%
   mutate(year = year(observed_on),
          month = month(observed_on)) %>% 
   rename_with(~str_replace_all(., "_", "."), .cols = everything()) %>% 
-  dplyr::select(id, observed.on, time.observed.at, user.id, user.login,
+  select(id, observed.on, time.observed.at, user.id, user.login,
                    quality.grade:positional.accuracy, coordinates.obscured,
                    species.guess:month) %>% 
   mutate(park = "ACAD") %>% 
-  dplyr::select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
+  select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
                 iconic.taxon.name, observed.on, year, month, quality.grade, latitude, 
                 longitude, user.login, everything(), full.scientific.name = scientific.name) %>% 
   rename(kingdom = taxon.kingdom.name, phylum = taxon.phylum.name,
@@ -62,7 +63,7 @@ inatA <- tibble(read.csv("data/acad_inat_obs_20231107.csv")) %>%
 
 ## Read, format, filter to ACAD, and clean the eBird data
 ebdA <- tibble(read.delim("data/ebd_US-ME_relFeb-2023.txt", header = T, quote = "")) %>% 
-  dplyr::select(c('COMMON.NAME', 'SCIENTIFIC.NAME', 'CATEGORY', 'OBSERVATION.DATE', 'OBSERVATION.COUNT', 
+  select(c('COMMON.NAME', 'SCIENTIFIC.NAME', 'CATEGORY', 'OBSERVATION.DATE', 'OBSERVATION.COUNT', 
                   'DURATION.MINUTES', 'SAMPLING.EVENT.IDENTIFIER', 'OBSERVER.ID', 'NUMBER.OBSERVERS',
                   'PROTOCOL.TYPE', 'ALL.SPECIES.REPORTED', 'EFFORT.DISTANCE.KM', 'LOCALITY', 'COUNTY', 
                   'LATITUDE', 'LONGITUDE')) %>% 
@@ -99,11 +100,11 @@ inatK <- tibble(read.csv("data/kaww_inat_obs_20231108.csv")) %>%
   mutate(year = year(observed_on),
          month = month(observed_on)) %>% 
   rename_with(~str_replace_all(., "_", "."), .cols = everything()) %>% 
-  dplyr::select(id, observed.on, time.observed.at, user.id, user.login,
+  select(id, observed.on, time.observed.at, user.id, user.login,
                 quality.grade:positional.accuracy, coordinates.obscured,
                 species.guess:month) %>% 
   mutate(park = "KAWW") %>% 
-  dplyr::select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
+  select(common.name, scientific.name = taxon.species.name, taxon.species.name, taxon.subspecies.name, 
                 iconic.taxon.name, observed.on, year, month, quality.grade, latitude, 
                 longitude, user.login, everything(), full.scientific.name = scientific.name) %>% 
   rename(kingdom = taxon.kingdom.name, phylum = taxon.phylum.name,
@@ -114,7 +115,7 @@ inatK <- tibble(read.csv("data/kaww_inat_obs_20231108.csv")) %>%
 
 ## Read, format, filter to KAWW, and clean the eBird data
 ebdK <- tibble(read.delim("data/ebd_US-ME_relFeb-2023.txt", header = T, quote = "")) %>% 
-  dplyr::select(c('COMMON.NAME', 'SCIENTIFIC.NAME', 'CATEGORY', 'OBSERVATION.DATE', 'OBSERVATION.COUNT', 
+  select(c('COMMON.NAME', 'SCIENTIFIC.NAME', 'CATEGORY', 'OBSERVATION.DATE', 'OBSERVATION.COUNT', 
                   'DURATION.MINUTES', 'SAMPLING.EVENT.IDENTIFIER', 'OBSERVER.ID', 'NUMBER.OBSERVERS',
                   'PROTOCOL.TYPE', 'ALL.SPECIES.REPORTED', 'EFFORT.DISTANCE.KM', 'LOCALITY', 'COUNTY', 
                   'LATITUDE', 'LONGITUDE')) %>% 
@@ -132,12 +133,6 @@ ebdK <- tibble(read.delim("data/ebd_US-ME_relFeb-2023.txt", header = T, quote = 
 
 ## Read in the KAWW boundary layer
 kaww.bounds <- sf::read_sf("data/kww_boundary/kww_boundary_polyg.shp")
-
-
-
-#------------------------------------------------#
-
-### Figure additions ###
 
 
 
@@ -185,7 +180,7 @@ acadmap
 
 ## Export figure
 # saveWidget(acadmap, "outputs/temp.html", selfcontained = FALSE)
-# webshot("outputs/temp.html", file = "outputs/forpub/pptx_and_subfigs/study_area_acad.png",
+# webshot("outputs/temp.html", file = "outputs/forpub/pptx_and_subfigs/study_area_acad7.png",
 #         vwidth = 700, vheight = 500,
 #         cliprect = "viewport")
 
@@ -237,17 +232,17 @@ inat <- bind_rows(inatA, inatK)
 ## Manipulate the data
 inatA_splist <- inatA %>% 
   filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
 inatK_splist <- inatK %>% 
   filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
 inat_splist <- inat %>%
   filter(scientific.name != "" & quality.grade == "research" & !is.na(scientific.name)) %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
 
@@ -267,17 +262,17 @@ ebd <- bind_rows(ebdA, ebdK)
 ## Manipulate the data
 ebird_splistA <- ebdA %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
 ebird_splistK <- ebdK %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct() %>% 
   arrange(scientific.name)
 ebird_splist <- ebd %>%
   filter(category == "species") %>%
-  dplyr::select(scientific.name) %>%
+  select(scientific.name) %>%
   distinct() %>%
   arrange(scientific.name)
 
@@ -325,7 +320,7 @@ cumulativeobA <- inatA %>%
          cumsum = cumsum(cumsum),
          cumsum = ifelse(is.na(cumsum), 0, cumsum),
          park = "ACAD") %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Calculate KAWW cumulative observers
@@ -342,7 +337,7 @@ cumulativeobK <- inatK %>%
          cumsum = cumsum(cumsum),
          cumsum = ifelse(is.na(cumsum), 0, cumsum),
          park = "KAWW") %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Bind these data for plotting
@@ -400,7 +395,7 @@ cumulativeobeA <- ebdA %>%
          cumsum = cumsum(cumsum),
          cumsum = ifelse(is.na(cumsum), 0, cumsum),
          park = "ACAD") %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Calculate KAWW cumulative observers
@@ -417,7 +412,7 @@ cumulativeobeK <- ebdK %>%
          cumsum = cumsum(cumsum),
          cumsum = ifelse(is.na(cumsum), 0, cumsum),
          park = "KAWW") %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Bind these data for plotting
@@ -462,7 +457,7 @@ ebdone <- ebdcumob %>%
 
 ## Calculate unique observers IDs for iNaturalist across both parks
 inatobstot <- bind_rows(inatA, inatK) %>% 
-  dplyr::select(user.id) %>% 
+  select(user.id) %>% 
   distinct()
 
 # 4,745
@@ -470,7 +465,7 @@ inatobstot <- bind_rows(inatA, inatK) %>%
 
 ## Calculate unique observers IDs for eBird across both parks
 ebdobstot <- bind_rows(ebdA, ebdK) %>% 
-  dplyr::select(observer.id) %>% 
+  select(observer.id) %>% 
   distinct()
 
 # 6,636
@@ -671,7 +666,7 @@ datesebirdA <- tibble(date = seq(as.Date("1958/1/1"), as.Date("2022/12/1"), by =
 ## Create data frame for calculations
 ebirdavgA <- datesebirdA %>% 
   full_join(tempckA) %>% 
-  dplyr::select(date, tot.obs) %>% 
+  select(date, tot.obs) %>% 
   mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
 
 
@@ -806,7 +801,7 @@ datesinatA <- tibble(date = seq(as.Date("1976/1/1"), as.Date("2022/12/1"), by = 
 ## Create data frame for calculations
 inatavgA <- datesinatA %>% 
   full_join(alltempA) %>% 
-  dplyr::select(date, tot.obs) %>% 
+  select(date, tot.obs) %>% 
   mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
 
 
@@ -866,6 +861,8 @@ compobsA <- ebdA %>%
 (length(compobsA$common.name) + length(rgA$common.name)) / length(bind_rows(inatA, ebdA)$common.name) * 100
 # 84.52667
 
+
+(length(ebirdcompA$checklist.id) + length(rgA$common.name)) / (length(inatA$common.name) + length(ebird_chkA$checklist.id)) * 100
 
 
 
@@ -974,7 +971,7 @@ datesebirdK <- tibble(date = seq(as.Date("1958/1/1"), as.Date("2022/12/1"), by =
 ## Create data frame for calculations
 ebirdavgK <- datesebirdK %>% 
   full_join(tempckK) %>% 
-  dplyr::select(date, tot.obs) %>% 
+  select(date, tot.obs) %>% 
   mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
 
 
@@ -1108,7 +1105,7 @@ datesinatK <- tibble(date = seq(as.Date("1976/1/1"), as.Date("2022/12/1"), by = 
 ## Create data frame for calculations
 inatavgK <- datesinatK %>% 
   full_join(alltempK) %>% 
-  dplyr::select(date, tot.obs) %>% 
+  select(date, tot.obs) %>% 
   mutate(tot.obs = ifelse(is.na(tot.obs), 0, tot.obs))
 
 ## Calculate average obs/month to current
@@ -1160,6 +1157,9 @@ compobsK <- ebdK %>%
 (length(compobsK$common.name) + length(rgK$common.name)) / length(bind_rows(inatK, ebdK)$common.name)
 # 0.9021426
 
+(length(ebirdcompK$checklist.id) + length(rgK$common.name)) / (length(inatK$common.name) + length(ebird_chkK$checklist.id)) * 100
+
+
 
 
 
@@ -1169,9 +1169,12 @@ compobsK <- ebdK %>%
 
 ### ACAD ### 
 
-## Combine all data
-griddatA <- bind_rows(inatA, ebdA) %>% 
-  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
+## Combine all data but first remove general hotspot for park
+scebdA <- ebdA %>% 
+  filter(locality != "Acadia NP (Please use more specific location if possible)")
+  
+griddatA <- bind_rows(inatA, scebdA) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
 
 
 ## Specify min/max for grid
@@ -1187,7 +1190,7 @@ rA = raster(matrix(1:8649, 93, 93), xmx = xmxA, xmn = xmnA, ymx = ymxA, ymn = ym
 
 ## Format points
 ptsA = griddatA %>% 
-  dplyr::select(longitude, latitude) %>% 
+  select(longitude, latitude) %>% 
   rename(x = longitude, y = latitude) %>% 
   as.data.frame()
 
@@ -1290,7 +1293,7 @@ cobsA <- r3A %>%
 ## Filter to those cells that intersect with the KAWW polygon
 filtcobsA <- sf::st_join(cobsA, acad.bounds, left = F) %>% 
   st_set_geometry(., NULL) %>% 
-  dplyr::select(everything(), latitude = latitude.keep, longitude = longitude.keep)
+  select(everything(), latitude = latitude.keep, longitude = longitude.keep)
 
 
 ## Calculate the percentage of cells with observations
@@ -1302,9 +1305,13 @@ length((filtcobsA %>% filter(count > 0))$count) / length(filtcobsA$count) * 100 
 
 ### KAWW ###
 
-## Combine all data
-griddatK <- bind_rows(inatK, ebdK) %>% 
-  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
+## Combine all data but first remove general hotspot for park
+scebdK <- ebdK %>% 
+  mutate(locality = ifelse(checklist.id == "S113870051", "KAWW", locality)) %>% 
+  filter(locality != "Katahdin Woods and Waters National Monument")
+
+griddatK <- bind_rows(inatK, scebdK) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude)
 
 
 ## Specify min/max for grid
@@ -1320,7 +1327,7 @@ rK = raster(matrix(1:2204, 58, 38), xmx = xmxK, xmn = xmnK, ymx = ymxK, ymn = ym
 
 ## Format points
 ptsK = griddatK %>% 
-  dplyr::select(longitude, latitude) %>% 
+  select(longitude, latitude) %>% 
   rename(x = longitude, y = latitude) %>% 
   as.data.frame()
 
@@ -1399,7 +1406,7 @@ cobsK <- r3K %>%
 ## Filter to those cells that intersect with the KAWW polygon
 filtcobsK <- sf::st_join(cobsK, kaww.bounds, left = F) %>% 
   st_set_geometry(., NULL) %>% 
-  dplyr::select(everything(), latitude = latitude.keep, longitude = longitude.keep)
+  select(everything(), latitude = latitude.keep, longitude = longitude.keep)
 
 
 ## Calculate the percentage of cells with observations
@@ -1416,7 +1423,7 @@ length((filtcobsK %>% filter(count > 0))$count) / length(filtcobsK$count) * 100 
 
 ## Read in the eBird taxonomy for merging with ebd
 etax <- read.csv("data/ebird_taxonomy_v2022.csv") %>% 
-  dplyr::select(scientific.name = SCI_NAME, order = ORDER1, family = FAMILY,
+  select(scientific.name = SCI_NAME, order = ORDER1, family = FAMILY,
                 species.group = SPECIES_GROUP)
 
 
@@ -1427,7 +1434,7 @@ ebdtaxA <- left_join(ebdA, etax, by = "scientific.name")
 ## Total species
 ebdtaxA %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct()
 
 
@@ -1462,14 +1469,14 @@ ebdA %>%
 ## Total species
 i_sppA <- inatA %>% 
   filter(scientific.name != "" & quality.grade == "research") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct()
 
 
 ## Total orders
 i_ordersA <- inatA %>% 
   filter(order != "" & quality.grade == "research") %>% 
-  dplyr::select(order) %>% 
+  select(order) %>% 
   distinct()
 
 
@@ -1484,7 +1491,7 @@ i_kingdoms_obsA <- inatA %>%
 ## Total species per kingdom
 i_kingdoms_sppA <- inatA %>% 
   filter(scientific.name != "" & quality.grade == "research") %>% 
-  dplyr::select(scientific.name, kingdom) %>% 
+  select(scientific.name, kingdom) %>% 
   distinct() %>% 
   group_by(kingdom) %>% 
   summarise(count = length(kingdom)) %>% 
@@ -1499,7 +1506,7 @@ i_kingdoms_rgA <- inatA %>%
   arrange(-rg.count)
 
 bind_cols(i_kingdoms_rgA, i_kingdoms_obsA) %>% 
-  dplyr::select(kingdom = `kingdom...1`, rg.count, count) %>% 
+  select(kingdom = `kingdom...1`, rg.count, count) %>% 
   mutate(prop = 100 * (rg.count / count)) %>% 
   arrange(-prop)
 
@@ -1507,7 +1514,7 @@ bind_cols(i_kingdoms_rgA, i_kingdoms_obsA) %>%
 ## Totals orders per kingdom
 # i_kingdoms_ordA <- inatA %>% 
 #   filter(order != "" & quality.grade == "research") %>% 
-#   dplyr::select(order, kingdom) %>% 
+#   select(order, kingdom) %>% 
 #   distinct() %>% 
 #   group_by(kingdom) %>% 
 #   summarise(count = length(kingdom)) %>% 
@@ -1525,7 +1532,7 @@ inatA %>%
 ## Total species per order Animalia
 inatA %>% 
   filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
-  dplyr::select(order, scientific.name) %>% 
+  select(order, scientific.name) %>% 
   distinct() %>% 
   group_by(order) %>%
   summarise(count = length(order)) %>% 
@@ -1543,7 +1550,7 @@ inatA %>%
 ## Total species per order Plantae
 inatA %>% 
   filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
-  dplyr::select(order, scientific.name) %>% 
+  select(order, scientific.name) %>% 
   distinct() %>% 
   group_by(order) %>%
   summarise(count = length(order)) %>% 
@@ -1583,7 +1590,7 @@ ebdtaxK <- left_join(ebdK, etax, by = "scientific.name")
 ## Total species
 ebdtaxK %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct()
 
 
@@ -1620,14 +1627,14 @@ ebdK%>%
 ## Total species
 i_sppK <- inatK %>% 
   filter(scientific.name != "" & quality.grade == "research") %>% 
-  dplyr::select(scientific.name) %>% 
+  select(scientific.name) %>% 
   distinct()
 
 
 ## Total orders
 i_ordersK <- inatK %>% 
   filter(order != "" & quality.grade == "research") %>% 
-  dplyr::select(order) %>% 
+  select(order) %>% 
   distinct()
 
 
@@ -1642,7 +1649,7 @@ i_kingdoms_obsK <- inatK %>%
 ## Total species per kingdom
 i_kingdoms_sppK <- inatK %>% 
   filter(scientific.name != "" & quality.grade == "research") %>% 
-  dplyr::select(scientific.name, kingdom) %>% 
+  select(scientific.name, kingdom) %>% 
   distinct() %>% 
   group_by(kingdom) %>% 
   summarise(count = length(kingdom)) %>% 
@@ -1657,7 +1664,7 @@ i_kingdoms_rgK <- inatK %>%
   arrange(-rg.count)
 
 bind_cols(i_kingdoms_rgK, i_kingdoms_obsK %>% filter(kingdom != "Protozoa" & kingdom != "Viruses")) %>% 
-  dplyr::select(kingdom = `kingdom...1`, rg.count, count) %>% 
+  select(kingdom = `kingdom...1`, rg.count, count) %>% 
   mutate(prop = 100 * (rg.count / count)) %>% 
   arrange(-prop)
 
@@ -1673,7 +1680,7 @@ inatK %>%
 ## Total species per order Animalia
 inatA %>% 
   filter(kingdom == "Animalia" & quality.grade == "research" & order != "") %>% 
-  dplyr::select(order, scientific.name) %>% 
+  select(order, scientific.name) %>% 
   distinct() %>% 
   group_by(order) %>%
   summarise(count = length(order)) %>% 
@@ -1690,7 +1697,7 @@ inatK %>%
 ## Total species per order Plantae
 inatK %>% 
   filter(kingdom == "Plantae" & quality.grade == "research" & order != "") %>% 
-  dplyr::select(order, scientific.name) %>% 
+  select(order, scientific.name) %>% 
   distinct() %>% 
   group_by(order) %>%
   summarise(count = length(order)) %>% 
@@ -1724,12 +1731,12 @@ sptotsK <- inatK %>%
 
 ## Total orders in both ACAD data sets
 oeA <- ebdtaxA %>% 
-  dplyr::select(scientific.name, order)
+  select(scientific.name, order)
 
 
 oiA <- inatA %>% 
   filter(quality.grade == "research") %>% 
-  dplyr::select(scientific.name, order)
+  select(scientific.name, order)
 
 
 oeiA <- bind_rows(oeA, oiA) 
@@ -1753,12 +1760,12 @@ allordersA <- oeiA %>%
 
 ## Total orders in both KAWW data sets
 oeK <- ebdtaxK %>% 
-  dplyr::select(scientific.name, order)
+  select(scientific.name, order)
 
 
 oiK <- inatK %>% 
   filter(quality.grade == "research") %>% 
-  dplyr::select(scientific.name, order)
+  select(scientific.name, order)
 
 
 oeiK <- bind_rows(oeK, oiK) 
@@ -1798,19 +1805,19 @@ bind_rows(oeiA, oeiK) %>%
 ## Filter data sets to necessary info
 iKcumsp <- inatK %>% 
   filter(quality.grade == "research" & scientific.name != "") %>% 
-  dplyr::select(scientific.name, observed.on, park)
+  select(scientific.name, observed.on, park)
 
 eKcumsp <- ebdK %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name, observed.on = obs.date, park)
+  select(scientific.name, observed.on = obs.date, park)
 
 iAcumsp <- inatA %>% 
   filter(quality.grade == "research" & scientific.name != "") %>% 
-  dplyr::select(scientific.name, observed.on, park)
+  select(scientific.name, observed.on, park)
 
 eAcumsp <- ebdA %>% 
   filter(category == "species") %>% 
-  dplyr::select(scientific.name, observed.on = obs.date, park)
+  select(scientific.name, observed.on = obs.date, park)
 
 
 ## Calculate cumulative species totals for iNat in both parks
@@ -1826,7 +1833,7 @@ icumulativespp <- bind_rows(iKcumsp, iAcumsp) %>%
   arrange(park, year) %>% 
   group_by(park) %>% 
   mutate(cumsum = cumsum(tot.obs)) %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Plot 
@@ -1869,7 +1876,7 @@ ecumulativespp <- bind_rows(eKcumsp, eAcumsp) %>%
   arrange(park, year) %>% 
   group_by(park) %>% 
   mutate(cumsum = cumsum(tot.obs)) %>% 
-  dplyr::select(year, cumsum, park)
+  select(year, cumsum, park)
 
 
 ## Plot
@@ -1946,66 +1953,174 @@ rgkingtab <- bind_rows(kingtabA, kingtabK) %>%
 
 ### Taxonomic diversity ###
 
+### ACAD
+## Get iNat taxonomy data
+taxtabiA <- inatA %>% 
+  filter(quality.grade == "research") %>% 
+  select(common.name, scientific.name, kingdom:family)
+
+
+## Summarize obs for each phylum
+phyAi <- taxtabiA %>% 
+  group_by(kingdom, phylum) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Summarize obs for each class
+claAi <- taxtabiA %>% 
+  group_by(kingdom, phylum, class) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Export for manual formatting 
+# write.csv(phyAi, "outputs/forpub/pptx_and_subfigs/sunburst_inatA.csv", row.names = F)
+# write.csv(claAi, "outputs/forpub/pptx_and_subfigs/sunburst_inatA2.csv", row.names = F)
+
+
+## Read in cleaned data
+tinatA <- read.csv("outputs/forpub/pptx_and_subfigs/sunburst_inatA_final.csv")
+
+
+## Plot
+plot_ly(tinatA,
+        labels = ~labels,
+        parents = ~parents,
+        values = ~num.obs,
+        type = 'sunburst',
+        branchvalues = "total") %>% 
+  plotly::layout(uniformtext = list(minsize = 14, mode = 'hide'))
+
+
+
+
+## Get eBird taxonomy data
 taxtabeA <- ebdtaxA %>% 
-  dplyr::select(common.name, scientific.name, category, order, family) %>% 
+  select(common.name, scientific.name, category, order, family) %>% 
   mutate(family = str_replace(family, "\\s\\(.*$", ""),
          kingdom = "Animalia",
          phylum = "Chordata",
          class = "Aves") %>% 
-  dplyr::select(common.name:category, kingdom:class, order, family)
+  select(common.name:category, kingdom:class, order, family)
 
 
-taxtabiA <- inatA %>% 
+## Summarize obs for each order
+ordAe <- taxtabeA %>% 
+  filter(order != "") %>% 
+  group_by(class, order) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Summarize obs for each family
+famAe <- taxtabeA %>% 
+  filter(order != "" & family != "") %>% 
+  group_by(class, order, family) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Export for manual formatting 
+# write.csv(ordAe, "outputs/forpub/pptx_and_subfigs/sunburst_ebdA.csv", row.names = F)
+# write.csv(famAe, "outputs/forpub/pptx_and_subfigs/sunburst_ebdA2.csv", row.names = F)
+
+
+## Read in cleaned data
+tebdA <- read.csv("outputs/forpub/pptx_and_subfigs/sunburst_ebdA_final.csv")
+
+
+## Plot
+plot_ly(tebdA,
+        labels = ~labels,
+        parents = ~parents,
+        values = ~num.obs,
+        type = 'sunburst',
+        branchvalues = "total") %>% 
+  plotly::layout(uniformtext = list(minsize = 14, mode = 'hide'))
+
+
+
+###
+
+
+## KAWW
+## Get iNat taxonomy data
+taxtabiK <- inatK %>% 
   filter(quality.grade == "research") %>% 
-  dplyr::select(common.name, scientific.name, kingdom:family)
+  select(common.name, scientific.name, kingdom:family)
 
 
-taxtabA <- bind_rows(taxtabeA, taxtabiA)
+## Summarize obs for each phylum
+phyKi <- taxtabiK %>% 
+  group_by(kingdom, phylum) %>% 
+  summarise(num.obs = length(scientific.name))
 
 
-length(unique((taxtabA %>% filter(kingdom != ""))$kingdom))
-length(unique((taxtabA %>% filter(phylum != ""))$phylum))
-length(unique((taxtabA %>% filter(class != ""))$class))
-length(unique((taxtabA %>% filter(order != ""))$order))
-length(unique((taxtabA %>% filter(family != ""))$family))
+## Summarize obs for each class
+claKi <- taxtabiK %>% 
+  group_by(kingdom, phylum, class) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Export for manual formatting 
+# write.csv(phyKi, "outputs/forpub/pptx_and_subfigs/sunburst_inatK.csv", row.names = F)
+# write.csv(claKi, "outputs/forpub/pptx_and_subfigs/sunburst_inatK2.csv", row.names = F)
+
+
+## Read in cleaned data
+tinatK <- read.csv("outputs/forpub/pptx_and_subfigs/sunburst_inatK_final.csv")
+
+
+## Plot
+plot_ly(tinatK,
+        labels = ~labels,
+        parents = ~parents,
+        values = ~num.obs,
+        type = 'sunburst',
+        branchvalues = "total") %>% 
+  plotly::layout(uniformtext = list(minsize = 14, mode = 'hide'))
 
 
 
-## Create data for phylogram
-# testdat <- inatK %>% 
-#   filter(kingdom != "") %>% 
-#   group_by(kingdom) %>% 
-#   mutate(kingdom.id = cur_group_id()) %>% 
-#   group_by(phylum) %>% 
-#   mutate(phylum.id = cur_group_id()) %>% 
-#   group_by(class) %>% 
-#   mutate(class.id = cur_group_id()) %>% 
-#   group_by(order) %>% 
-#   mutate(order.id = cur_group_id()) %>% 
-#   group_by(family) %>% 
-#   mutate(family.id = cur_group_id()) %>%
-#   group_by(genus) %>% 
-#   mutate(genus.id = cur_group_id()) %>% 
-#   ungroup() %>% 
-#   filter(kingdom == "Fungi" | kingdom == "Animalia") %>% 
-#   dplyr::select(family, kingdom.id:family.id) %>% 
-#   distinct() %>% 
-#   filter(family != "") %>% 
-#   column_to_rownames(var = "family")
-#   
-#   
-#   
-#   dplyr::select(scientific.name, kingdom.id:genus.id) %>% 
-#   distinct() %>% 
-#   filter(scientific.name != "") %>% 
-#   column_to_rownames(var = "scientific.name")
+
+## Get eBird taxonomy data
+taxtabeK <- ebdtaxK %>% 
+  select(common.name, scientific.name, category, order, family) %>% 
+  mutate(family = str_replace(family, "\\s\\(.*$", ""),
+         kingdom = "Animalia",
+         phylum = "Chordata",
+         class = "Aves") %>% 
+  select(common.name:category, kingdom:class, order, family)
 
 
-## Compute distances and hierarchical clustering
-# dd <- dist(scale(testdat), method = "euclidean")
-# hc <- hclust(dd, method = "ward.D2")
-# 
-# plot(as.phylo(hc), type = "fan")
+## Summarize obs for each order
+ordKe <- taxtabeK %>% 
+  filter(order != "") %>% 
+  group_by(class, order) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Summarize obs for each family
+famKe <- taxtabeK %>% 
+  filter(order != "" & family != "") %>% 
+  group_by(class, order, family) %>% 
+  summarise(num.obs = length(scientific.name))
+
+
+## Export for manual formatting 
+# write.csv(ordKe, "outputs/forpub/pptx_and_subfigs/sunburst_ebdK.csv", row.names = F)
+# write.csv(famKe, "outputs/forpub/pptx_and_subfigs/sunburst_ebdK2.csv", row.names = F)
+
+
+## Read in cleaned data
+tebdK <- read.csv("outputs/forpub/pptx_and_subfigs/sunburst_ebdK_final.csv")
+
+
+## Plot
+plot_ly(tebdK,
+        labels = ~labels,
+        parents = ~parents,
+        values = ~num.obs,
+        type = 'sunburst',
+        branchvalues = "total") %>% 
+  plotly::layout(uniformtext = list(minsize = 13, mode = 'hide'))
 
 
 
@@ -2021,7 +2136,7 @@ map_inatA <- inatA %>%
   filter(quality.grade == "research")
 
 mapdatA <- bind_rows(map_inatA, ebdA) %>% 
-  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
   mutate(cat = "All observations")
 
 
@@ -2032,7 +2147,7 @@ watchlist_species(mapdatA, "outputs/watchlist_acad")
 ### Load in the watch list csv files
 ## Pest species
 pestsA <- read.csv("outputs/watchlist_acad/invasive_pestslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Invasive species observations")
 
 ptabA <- tibble(pestsA) %>% 
@@ -2046,7 +2161,7 @@ length(ptabA$scientific.name)
 
 ## Rare species
 rareA <- read.csv("outputs/watchlist_acad/rare_specieslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Rare native species observations")
 
 rtabA <- tibble(rareA) %>% 
@@ -2060,7 +2175,7 @@ length(rtabA$scientific.name)
 
 ## T&E species
 tandeA <- read.csv("outputs/watchlist_acad/te_specieslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Threatened/endangered species observations")
 
 tetabA <- tibble(tandeA) %>% 
@@ -2105,7 +2220,7 @@ map_inatK <- inatK %>%
   filter(quality.grade == "research")
 
 mapdatK <- bind_rows(map_inatK, ebdK) %>% 
-  dplyr::select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
   mutate(cat = "All observations")
 
 
@@ -2116,7 +2231,7 @@ watchlist_species(mapdatK, "outputs/watchlist_kaww")
 ### Load in the watch list csv files
 ## Pest species
 pestsK <- read.csv("outputs/watchlist_kaww/invasive_pestslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Invasive species observations")
 
 ptabK <- tibble(pestsK) %>% 
@@ -2130,7 +2245,7 @@ length(ptabK$scientific.name)
 
 ## Rare species
 rareK <- read.csv("outputs/watchlist_kaww/rare_specieslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Rare native species observations")
 
 rtabK <- tibble(rareK) %>% 
@@ -2144,7 +2259,7 @@ length(rtabK$scientific.name)
 
 ## T&E species
 tandeK <- read.csv("outputs/watchlist_kaww/te_specieslist.csv") %>% 
-  dplyr::select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+  select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Threatened/endangered species observations")
 
 tetabK <- tibble(tandeK) %>% 
