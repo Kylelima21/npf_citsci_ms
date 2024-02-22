@@ -1386,7 +1386,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/heatmap_kaww.png", dpi = 700, width = 6, height = 5.4)
+ggsave("outputs/forpub/heatmap_kaww.png", dpi = 700, width = 6, height = 5.4)
 
 
 
