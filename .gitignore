@@ -1,5 +1,9 @@
 # Data files
 data/ebd_US-ME_relFeb-2023.txt
+data/ebd_US-ME_relFeb-2024.txt
+
+# Old versions of figs
+outputs/forpub/z_old_versions/
 
 # History files
 .Rhistory

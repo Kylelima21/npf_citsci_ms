@@ -2,6 +2,25 @@ require(tidyverse)
 require(sf)
 
 
+## Make a function that will allow us to quickly visualize the model results
+explore_model <- function(model) {
+  
+  try(dev.off(dev.list()["RStudioGD"]), silent = TRUE)
+  
+  
+  qqnorm(resid(model))
+  qqline(resid(model))
+  
+  
+  #print(plot(model))
+  
+  
+  summary(model)
+
+}
+
+
+
 #' @description A simple function that will take a dataframe, filter by records inside ANP, and return a
 #' cleaned dataframe. IMPORTANT: This function only work for lat long data seperated
 #' in two different columns (one for lat and one for long).
@@ -208,7 +227,7 @@ filter_gbif_to_park <- function(dat, park, lat, long) {
 #' @export
 #' @examples  
 #' watchlist_species(inat_lastweek, "outputs/te_species")
-
+#' 
 watchlist_species <- function(x, output.path) {
   
   ## Check to make sure that parameter inputs are correct
@@ -231,7 +250,7 @@ watchlist_species <- function(x, output.path) {
   # Read in the file and filter for the T, E, and SC species
   fed_te_sp <- read_csv("data/federal_list_maine.csv") %>% 
     rename_with(tolower, everything()) %>% 
-    dplyr::select(scientific.name = "scientific name", common.name = "common name",
+    select(scientific.name = "scientific name", common.name = "common name",
            listing.status = "esa listing status") %>% 
     mutate(level = "federal",
            listing.status = tolower(listing.status),
@@ -251,20 +270,19 @@ watchlist_species <- function(x, output.path) {
   # All T, E species from the last week
   te_specieslist_federal <- x %>% 
     filter(scientific.name %in% fed_te_sp$scientific.name) %>% 
-    dplyr::select(scientific.name, common.name, observed.on, place.guess, latitude, longitude) %>% 
+    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, url) %>% 
     left_join(fed_te_sp, by = "scientific.name") %>% 
-    dplyr::select(scientific.name, common.name = common.name.x, observed.on, 
-           location = place.guess, latitude, longitude, listing.status)
+    select(scientific.name, common.name = common.name.x, observed.on, location = place.guess, 
+           listing.status, latitude, longitude, url)
   
   
   # All T, E species from the last week
   te_specieslist_state <- x %>% 
     filter(scientific.name %in% state_te_sp$scientific.name) %>% 
-    dplyr::select(scientific.name, common.name, observed.on, place.guess, latitude, longitude) %>% 
+    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, url) %>% 
     left_join(state_te_sp, by = "scientific.name") %>% 
-    dplyr::select(scientific.name, common.name = common.name.x, observed.on, 
-           location = place.guess, latitude, longitude, listing.status) %>% 
-    filter(scientific.name != "Sterna dougallii")
+    select(scientific.name, common.name = common.name.x, observed.on, 
+           location = place.guess, listing.status, latitude, longitude, url)
   
   # Combine and export
   all_te_sp <- dplyr::bind_rows(te_specieslist_federal, te_specieslist_state) #%>% 
@@ -284,14 +302,16 @@ watchlist_species <- function(x, output.path) {
   
   invasive_ne <- listsp %>% 
     filter(status == "invasive not established" |
-           status == "invasive established" |
-           status == "pest disease")
+             status == "invasive established" |
+             status == "pest disease")
   
   
   # Native but rare
   rares_obs <- x %>% 
     filter(scientific.name %in% rares$scientific.name) %>% 
-    arrange(desc(observed.on))
+    arrange(desc(observed.on)) %>%
+    dplyr::select(scientific.name, common.name, observed.on, 
+                  location = place.guess, latitude, longitude, url)
   
   
   # Invasives and pests
@@ -305,8 +325,7 @@ watchlist_species <- function(x, output.path) {
   invasive_gen <-  x %>% 
     mutate(genus = str_remove(scientific.name, "\\s\\w*")) %>% 
     filter(genus %in% inv2$genus) %>% 
-    dplyr::select(-genus) %>% 
-    filter(scientific.name != "Lonicera canadensis")
+    select(-genus)
   
   invasive_obs <- rbind(invasive_sp, invasive_gen) %>% 
     arrange(desc(observed.on))
@@ -316,4 +335,7 @@ watchlist_species <- function(x, output.path) {
   write.csv(invasive_obs, paste(output.path, "invasive_pestslist.csv", sep = "/"), row.names = F)
   
 }
+
+
+
 

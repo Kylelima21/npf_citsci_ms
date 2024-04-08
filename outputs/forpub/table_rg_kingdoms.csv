@@ -1,12 +1,13 @@
-Kingdom,Total observations,Research-grade observations,Percentage of observations at research-grade status (%),Park code
-Animalia,"16,233","10,821",67,ACAD
-Plantae,"26,885","16,176",60,ACAD
-Chromista,439,215,49,ACAD
-Bacteria,5,1,20,ACAD
-Fungi,"7,963","1,545",19,ACAD
-Protozoa,134,21,16,ACAD
-Plantae,966,719,74,KAWW
-Animalia,916,486,53,KAWW
-Fungi,216,83,38,KAWW
-Protozoa,1,0,0,KAWW
-Viruses,1,0,0,KAWW
+"kingdom","total.obs","rg.obs","percent.rg","park"
+"Animalia",20279,13586,67,"ACAD"
+"Plantae",35618,21933,62,"ACAD"
+"Chromista",531,269,51,"ACAD"
+"Bacteria",14,3,21,"ACAD"
+"Fungi",11011,2048,19,"ACAD"
+"Protozoa",203,39,19,"ACAD"
+"Plantae",1288,966,75,"KAWW"
+"Animalia",1168,671,57,"KAWW"
+"Fungi",371,131,35,"KAWW"
+"Chromista",1,0,0,"KAWW"
+"Protozoa",2,0,0,"KAWW"
+"Viruses",1,0,0,"KAWW"
