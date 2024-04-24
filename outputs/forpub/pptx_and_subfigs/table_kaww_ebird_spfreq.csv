@@ -1,0 +1,176 @@
+"common.name","scientific.name","frequency"
+"White-throated Sparrow","Zonotrichia albicollis",41.95
+"Blue Jay","Cyanocitta cristata",40.75
+"Black-capped Chickadee","Poecile atricapillus",38.18
+"Common Yellowthroat","Geothlypis trichas",36.99
+"Red-breasted Nuthatch","Sitta canadensis",36.22
+"Hermit Thrush","Catharus guttatus",33.48
+"American Robin","Turdus migratorius",32.11
+"Red-eyed Vireo","Vireo olivaceus",31.34
+"Ovenbird","Seiurus aurocapilla",30.99
+"Magnolia Warbler","Setophaga magnolia",30.74
+"Black-and-white Warbler","Mniotilta varia",27.31
+"Yellow-rumped Warbler","Setophaga coronata",25.51
+"Northern Flicker","Colaptes auratus",24.4
+"Northern Parula","Setophaga americana",23.54
+"Golden-crowned Kinglet","Regulus satrapa",23.03
+"Blue-headed Vireo","Vireo solitarius",21.58
+"American Redstart","Setophaga ruticilla",21.32
+"Swainson's Thrush","Catharus ustulatus",20.38
+"Black-throated Green Warbler","Setophaga virens",20.03
+"Ruby-crowned Kinglet","Corthylio calendula",19.78
+"Nashville Warbler","Leiothlypis ruficapilla",19.09
+"Cedar Waxwing","Bombycilla cedrorum",18.84
+"Chestnut-sided Warbler","Setophaga pensylvanica",18.66
+"Swamp Sparrow","Melospiza georgiana",18.32
+"Dark-eyed Junco","Junco hyemalis",18.24
+"Veery","Catharus fuscescens",17.81
+"Belted Kingfisher","Megaceryle alcyon",17.38
+"Ruffed Grouse","Bonasa umbellus",15.84
+"Black-throated Blue Warbler","Setophaga caerulescens",14.38
+"Hairy Woodpecker","Dryobates villosus",13.87
+"Yellow-bellied Sapsucker","Sphyrapicus varius",13.78
+"Winter Wren","Troglodytes hiemalis",13.7
+"Pine Warbler","Setophaga pinus",11.82
+"Northern Waterthrush","Parkesia noveboracensis",11.56
+"Palm Warbler","Setophaga palmarum",10.7
+"American Goldfinch","Spinus tristis",9.59
+"Common Raven","Corvus corax",9.59
+"Turkey Vulture","Cathartes aura",9.5
+"Song Sparrow","Melospiza melodia",9.08
+"Purple Finch","Haemorhous purpureus",8.9
+"Yellow-bellied Flycatcher","Empidonax flaviventris",8.82
+"Common Grackle","Quiscalus quiscula",8.73
+"Canada Jay","Perisoreus canadensis",8.56
+"Downy Woodpecker","Dryobates pubescens",8.56
+"Pileated Woodpecker","Dryocopus pileatus",8.48
+"Blackburnian Warbler","Setophaga fusca",8.3
+"Olive-sided Flycatcher","Contopus cooperi",8.05
+"Canada Warbler","Cardellina canadensis",7.88
+"Alder Flycatcher","Empidonax alnorum",7.53
+"Rose-breasted Grosbeak","Pheucticus ludovicianus",7.11
+"Spruce Grouse","Canachites canadensis",7.02
+"American Crow","Corvus brachyrhynchos",6.85
+"Black-backed Woodpecker","Picoides arcticus",6.76
+"Red Crossbill","Loxia curvirostra",6.76
+"Chimney Swift","Chaetura pelagica",6.68
+"Broad-winged Hawk","Buteo platypterus",6.51
+"Least Flycatcher","Empidonax minimus",6.34
+"Canada Goose","Branta canadensis",4.79
+"Eastern Wood-Pewee","Contopus virens",4.79
+"Common Nighthawk","Chordeiles minor",4.71
+"Chipping Sparrow","Spizella passerina",4.62
+"Ruby-throated Hummingbird","Archilochus colubris",4.2
+"White-winged Crossbill","Loxia leucoptera",4.11
+"Brown Creeper","Certhia americana",3.94
+"Eastern Phoebe","Sayornis phoebe",3.85
+"Pine Siskin","Spinus pinus",3.85
+"Scarlet Tanager","Piranga olivacea",3.85
+"Tree Swallow","Tachycineta bicolor",3.85
+"Wood Thrush","Hylocichla mustelina",3.68
+"Yellow Warbler","Setophaga petechia",3.6
+"Bay-breasted Warbler","Setophaga castanea",3.51
+"Philadelphia Vireo","Vireo philadelphicus",3.51
+"Boreal Chickadee","Poecile hudsonicus",3.42
+"Red-tailed Hawk","Buteo jamaicensis",3.42
+"Bald Eagle","Haliaeetus leucocephalus",3.34
+"Hooded Merganser","Lophodytes cucullatus",3.25
+"Wood Duck","Aix sponsa",3
+"Common Merganser","Mergus merganser",2.91
+"Great Blue Heron","Ardea herodias",2.91
+"Ring-necked Duck","Aythya collaris",2.91
+"Gray Catbird","Dumetella carolinensis",2.57
+"White-breasted Nuthatch","Sitta carolinensis",2.57
+"Red-winged Blackbird","Agelaius phoeniceus",2.31
+"Blackpoll Warbler","Setophaga striata",2.23
+"Mourning Dove","Zenaida macroura",2.23
+"Wilson's Snipe","Gallinago delicata",2.14
+"Rusty Blackbird","Euphagus carolinus",2.05
+"Sharp-shinned Hawk","Accipiter striatus",1.97
+"Spotted Sandpiper","Actitis macularius",1.97
+"American Kestrel","Falco sparverius",1.88
+"Eastern Kingbird","Tyrannus tyrannus",1.8
+"Cape May Warbler","Setophaga tigrina",1.71
+"American Black Duck","Anas rubripes",1.63
+"Mourning Warbler","Geothlypis philadelphia",1.63
+"Tennessee Warbler","Leiothlypis peregrina",1.63
+"new world warbler sp.","Parulidae sp.",1.46
+"American Woodcock","Scolopax minor",1.37
+"Common Loon","Gavia immer",1.28
+"Great Crested Flycatcher","Myiarchus crinitus",1.28
+"Merlin","Falco columbarius",1.28
+"White-crowned Sparrow","Zonotrichia leucophrys",1.2
+"Wild Turkey","Meleagris gallopavo",1.2
+"Barred Owl","Strix varia",1.11
+"Fox Sparrow","Passerella iliaca",1.11
+"Mallard","Anas platyrhynchos",1.11
+"passerine sp.","Passeriformes sp.",1.11
+"American Bittern","Botaurus lentiginosus",1.03
+"Osprey","Pandion haliaetus",1.03
+"American Goshawk","Accipiter atricapillus",0.94
+"Cooper's Hawk","Accipiter cooperii",0.94
+"Black-billed Cuckoo","Coccyzus erythropthalmus",0.86
+"Common Goldeneye","Bucephala clangula",0.86
+"Eastern Whip-poor-will","Antrostomus vociferus",0.77
+"Evening Grosbeak","Coccothraustes vespertinus",0.77
+"Catharus sp.","Catharus sp.",0.68
+"Lincoln's Sparrow","Melospiza lincolnii",0.68
+"Empidonax sp.","Empidonax sp.",0.6
+"Savannah Sparrow","Passerculus sandwichensis",0.6
+"Solitary Sandpiper","Tringa solitaria",0.6
+"duck sp.","Anatidae (duck sp.)",0.6
+"Downy/Hairy Woodpecker","Dryobates pubescens/villosus",0.51
+"Great Horned Owl","Bubo virginianus",0.51
+"Northern Cardinal","Cardinalis cardinalis",0.51
+"Northern Saw-whet Owl","Aegolius acadicus",0.51
+"woodpecker sp.","Picidae sp.",0.51
+"Barn Swallow","Hirundo rustica",0.43
+"Eastern Bluebird","Sialia sialis",0.43
+"Indigo Bunting","Passerina cyanea",0.43
+"American Tree Sparrow","Spizelloides arborea",0.34
+"Bobolink","Dolichonyx oryzivorus",0.34
+"Eastern Towhee","Pipilo erythrophthalmus",0.34
+"Red-shouldered Hawk","Buteo lineatus",0.34
+"Ring-billed Gull","Larus delawarensis",0.34
+"Snow Bunting","Plectrophenax nivalis",0.34
+"Warbling Vireo","Vireo gilvus",0.34
+"blackbird sp.","Icteridae sp.",0.34
+"Buteo sp.","Buteo sp.",0.26
+"Common Redpoll","Acanthis flammea",0.26
+"Herring Gull","Larus argentatus",0.26
+"Marsh Wren","Cistothorus palustris",0.26
+"Northern Harrier","Circus hudsonius",0.26
+"Pine Grosbeak","Pinicola enucleator",0.26
+"Virginia Rail","Rallus limicola",0.26
+"swallow sp.","Hirundinidae sp.",0.26
+"Accipiter sp.","Accipiter sp.",0.17
+"American Pipit","Anthus rubescens",0.17
+"Brown-headed Cowbird","Molothrus ater",0.17
+"Mallard/American Black Duck","Anas platyrhynchos/rubripes",0.17
+"Northern Shrike","Lanius borealis",0.17
+"Peregrine Falcon","Falco peregrinus",0.17
+"Yellow-billed Cuckoo","Coccyzus americanus",0.17
+"American Three-toed Woodpecker","Picoides dorsalis",0.09
+"Baltimore Oriole","Icterus galbula",0.09
+"Bank Swallow","Riparia riparia",0.09
+"Bicknell's Thrush","Catharus bicknelli",0.09
+"Blue-winged Teal","Spatula discors",0.09
+"Carolina Wren","Thryothorus ludovicianus",0.09
+"Cliff Swallow","Petrochelidon pyrrhonota",0.09
+"European Starling","Sturnus vulgaris",0.09
+"Field Sparrow","Spizella pusilla",0.09
+"Greater Scaup","Aythya marila",0.09
+"Greater Yellowlegs","Tringa melanoleuca",0.09
+"Green-winged Teal","Anas crecca",0.09
+"Horned Lark","Eremophila alpestris",0.09
+"Least Bittern","Ixobrychus exilis",0.09
+"Northern Mockingbird","Mimus polyglottos",0.09
+"Pied-billed Grebe","Podilymbus podiceps",0.09
+"Semipalmated Sandpiper","Calidris pusilla",0.09
+"Snow Goose","Anser caerulescens",0.09
+"Sora","Porzana carolina",0.09
+"Tufted Titmouse","Baeolophus bicolor",0.09
+"Vesper Sparrow","Pooecetes gramineus",0.09
+"Wilson's Warbler","Cardellina pusilla",0.09
+"crossbill sp.","Loxia sp.",0.09
+"hawk sp.","Accipitridae sp. (hawk sp.)",0.09

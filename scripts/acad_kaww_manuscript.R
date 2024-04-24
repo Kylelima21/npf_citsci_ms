@@ -443,7 +443,7 @@ ebdone <- ebdcumob %>%
   labs(x = "Year", y = "eBird observers") +
   scale_y_continuous(labels = comma) +
   scale_x_continuous(limits = c(1960, 2026), breaks = seq(1960, 2026, by = 10)) +
-  theme(legend.position.inside = c(0.18, 0.85),
+  theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", linewidth = 0.4),
         legend.title = element_text(face = "bold", size = 17),
         legend.text = element_text(color = "black", size = 17,  margin = margin(0, 0, 0, 0.2, "cm")),
@@ -604,8 +604,8 @@ plot_grid(ebdone, inatone, totebd, totinat, nrow = 2, labels = c('a)', 'b)', 'c)
 
 
 ## Save
-# ggsave(paste0("outputs/forpub/figure_observations_observers.png"),
-#                height = 10, width = 13.5, units = "in", dpi = 700)
+ggsave(paste0("outputs/forpub/figure_observations_observers.png"),
+               height = 10, width = 13.5, units = "in", dpi = 700)
 
 
 
@@ -969,7 +969,7 @@ ebirdcompK <- ebdK %>%
   filter(duration.min >= 5 & all.species.reported == 1 & protocol != "Incidental") %>% 
   distinct(checklist.id)
 
-length(ebirdcompK$checklist.id) # 897
+length(ebirdcompK$checklist.id) # 956
 
 
 ## Percentage of checklists that are complete
@@ -1311,8 +1311,10 @@ visdat %>%
          observations.times = 1/mean.observations)
 
 
-wilcox.test(observers.vis ~ park, data = visdat)
+gg <- wilcox.test(observers.vis ~ park, data = visdat)
 wilcox.test(observations.vis ~ park, data = visdat)
+
+summary(gg)
 
 
 acadvis <- visits %>% 
@@ -1481,7 +1483,7 @@ cobsA <- r3A %>%
   sf::st_as_sf(., coords = c("x","y"), crs = sf::st_crs(acad.bounds))
 
 
-## Filter to those cells that intersect with the KAWW polygon
+ ## Filter to those cells that intersect with the KAWW polygon
 filtcobsA <- sf::st_join(cobsA, acad.bounds, left = F) %>% 
   st_set_geometry(., NULL) %>% 
   select(everything(), latitude = latitude.keep, longitude = longitude.keep)
@@ -1543,7 +1545,7 @@ r3K <- as.data.frame(r2K, xy = TRUE) %>%
 
 
 ## Read in the fee boundary shape file
-kww.b <- sf::read_sf("data/kww_boundary/kaww_bounds.shp") %>% 
+kww.b <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp") %>% 
   st_transform(4326)
 
 
@@ -1643,12 +1645,18 @@ e_ordersA <- ebdtaxA %>%
 
 
 ## Calculate frequency of obs for each species
-ebdA %>% 
+efreqA <- ebdA %>% 
   mutate(count = ifelse(count == "X", 1, count),
          count = as.numeric(count)) %>% 
   group_by(common.name, scientific.name) %>% 
   summarize(frequency = round((length(scientific.name) / length(unique(ebdA$checklist.id)) * 100), 2)) %>% 
   arrange(-frequency)
+
+efreqA
+
+
+## Write out for table
+write.csv(efreqA, "outputs/forpub/pptx_and_subfigs/table_acad_ebird_spfreq.csv", row.names = F)
 
 
 
@@ -1801,12 +1809,18 @@ e_ordersK <- ebdtaxK %>%
 
 
 ## Calculate frequency of obs for each species
-ebdK%>% 
+efreqK <- ebdK %>% 
   mutate(count = ifelse(count == "X", 1, count),
          count = as.numeric(count)) %>% 
   group_by(common.name, scientific.name) %>% 
   summarize(frequency = round((length(scientific.name) / length(unique(ebdK$checklist.id)) * 100), 2)) %>% 
   arrange(-frequency)
+
+efreqK
+
+
+## Write out for table
+write.csv(efreqK, "outputs/forpub/pptx_and_subfigs/table_kaww_ebird_spfreq.csv", row.names = F)
 
 
 
@@ -2071,15 +2085,17 @@ ecumulativespp <- bind_rows(eKcumsp, eAcumsp) %>%
   mutate(cumsum = cumsum(tot.obs)) %>% 
   select(year, cumsum, park)
 
+ecumulativespp <- bind_rows(ecumulativespp, data.frame(year = 2023, cumsum = 161, park = "KAWW"))
+
 
 ## Plot
 ecumplot <- ecumulativespp %>% 
   ggplot(aes(x = year, y = cumsum, color = park, linetype = park)) + 
   geom_line(linewidth = 0.8) +
-  geom_dl(data = subset(ecumulativespp, year == 2021 & park == "ACAD"),
+  geom_dl(data = subset(ecumulativespp, year == 2023 & park == "ACAD"),
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
           method = list(cex = 1.3, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
-  geom_dl(data = subset(ecumulativespp, year == 2022 & park == "KAWW"),
+  geom_dl(data = subset(ecumulativespp, year == 2023 & park == "KAWW"),
           aes(label = format(cumsum, big.mark = ",", scientific = FALSE)), color = "black",
           method = list(cex = 1.3, dl.trans(y = y + 0.4, x = x - 0.5), "last.points")) +
   theme_classic() +
