@@ -228,7 +228,7 @@ filter_gbif_to_park <- function(dat, park, lat, long) {
 #' @examples  
 #' watchlist_species(inat_lastweek, "outputs/te_species")
 #' 
-watchlist_species <- function(x, output.path) {
+watchlist_species <- function(x, parkinput, output.path) {
   
   ## Check to make sure that parameter inputs are correct
   # output.path
@@ -264,13 +264,14 @@ watchlist_species <- function(x, output.path) {
     mutate(level = "state",
            listing.status = tolower(listing.status),
            listing.status = paste0("state ", listing.status)) %>% 
-    dplyr::select(-level)
+    dplyr::select(-level) %>% 
+    filter(common.name != "Roseate tern")
   
   
   # All T, E species from the last week
   te_specieslist_federal <- x %>% 
     filter(scientific.name %in% fed_te_sp$scientific.name) %>% 
-    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, url) %>% 
+    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, positional.accuracy, url) %>% 
     left_join(fed_te_sp, by = "scientific.name") %>% 
     select(scientific.name, common.name = common.name.x, observed.on, location = place.guess, 
            listing.status, latitude, longitude, url)
@@ -279,7 +280,7 @@ watchlist_species <- function(x, output.path) {
   # All T, E species from the last week
   te_specieslist_state <- x %>% 
     filter(scientific.name %in% state_te_sp$scientific.name) %>% 
-    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, url) %>% 
+    select(scientific.name, common.name, observed.on, place.guess, latitude, longitude, positional.accuracy, url) %>% 
     left_join(state_te_sp, by = "scientific.name") %>% 
     select(scientific.name, common.name = common.name.x, observed.on, 
            location = place.guess, listing.status, latitude, longitude, url)
@@ -295,15 +296,21 @@ watchlist_species <- function(x, output.path) {
   
   ## RARE, INVASIVE, PESTS
   # Rare native species list
-  listsp <- read_excel("data/acad_watchlist_species.xlsx", .name_repair = custom_name_repair) 
+  if (parkinput == "ACAD") {
+    listsp <- read_excel("data/acad_watchlist_species.xlsx", .name_repair = custom_name_repair) 
+  }
+  if (parkinput == "KAWW") {
+    listsp <- read_excel("data/kaww_watchlist_species.xlsx", .name_repair = custom_name_repair) %>% 
+      select(-subcategory)
+  }
   
   rares <- listsp %>% 
-    filter(status == "rare native" | status == "insect")
+    filter(category == "species of interest")
   
   invasive_ne <- listsp %>% 
-    filter(status == "invasive not established" |
-             status == "invasive established" |
-             status == "pest disease")
+    filter(category == "invasive not established" |
+             category == "invasive established" |
+             category == "pest disease")
   
   
   # Native but rare
@@ -311,7 +318,7 @@ watchlist_species <- function(x, output.path) {
     filter(scientific.name %in% rares$scientific.name) %>% 
     arrange(desc(observed.on)) %>%
     dplyr::select(scientific.name, common.name, observed.on, 
-                  location = place.guess, latitude, longitude, url)
+                  location = place.guess, latitude, longitude, positional.accuracy, url)
   
   
   # Invasives and pests

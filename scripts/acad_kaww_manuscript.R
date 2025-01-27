@@ -133,7 +133,8 @@ ebdK <- tibble(read.delim("data/ebd_US-ME_relFeb-2024.txt", header = T, quote = 
 
 
 ## Read in the KAWW boundary layer
-kaww.bounds <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp")
+kaww.bounds <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp") %>% 
+  st_transform(., crs = '+proj=longlat +datum=WGS84')
 
 
 
@@ -164,7 +165,7 @@ ggplot(data = states) +
   geom_polygon(aes(x = long, y = lat, group = group), color = "white", fill = "gray50", show.legend = F) + 
   coord_fixed(1.3) +
   lims(x = c(-80, -66), y = c(38, 48)) +
-  theme_nothing()
+  ggmap::theme_nothing()
 
 
 ## Export figure
@@ -216,7 +217,7 @@ kawwmap <- leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
   addProviderTiles(providers$CartoDB.PositronNoLabels) %>% 
   addProviderTiles(providers$CartoDB.PositronOnlyLabels, options = providerTileOptions(pane = "labels")) %>% 
   addPolygons(data = kaww.bounds, color = "black", fill = T, fillColor = "darkorange", opacity = 1, fillOpacity = 0.9,
-              weight = .5, options = pathOptions(pane = "polygons")) %>% 
+              weight = .5, options = pathOptions(pane = "polygons"), ) %>% 
   fitBounds(minLong, minLat, maxLong, maxLat)
 
 
@@ -463,41 +464,47 @@ ebdone <- ebdcumob %>%
 
 #------------------------------------------------#
 
-### GLM for observers by year ###
-
-obsr.Ai <- inatA %>% 
-  group_by(park, year) %>% 
-  summarise(n.users = length(unique(user.id))) %>% 
-  print(n = nrow(.))
-
-obsr.Ki <- inatK %>% 
-  group_by(park, year) %>% 
-  summarise(n.users = length(unique(user.id))) %>% 
-  print(n = nrow(.))
-
-
-obsr.Ae <- ebdA %>% 
-  mutate(year = year(obs.date)) %>% 
-  group_by(park, year) %>% 
-  summarise(n.users = length(unique(observer.id))) %>% 
-  print(n = nrow(.))
-
-obsr.Ke <- ebdK %>% 
-  mutate(year = year(obs.date)) %>% 
-  group_by(park, year) %>% 
-  summarise(n.users = length(unique(observer.id))) %>% 
-  print(n = nrow(.))
-
-
-obsr.A <- bind_rows(obsr.Ai, obsr.Ae)
-obsr.K <- bind_rows(obsr.Ki, obsr.Ke)
-
-obsr.Amod <- glm(n.users ~ year, data = obsr.A, family = "poisson")
-explore_model(obsr.Amod)
-
-obsr.Kmod <- glm(n.users ~ year, data = obsr.K, family = "poisson")
-explore_model(obsr.Kmod)
-
+# ### GLM for observers by year ###
+# 
+# obsr.Ai <- inatA %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.users = length(unique(user.id))) %>% 
+#   print(n = nrow(.))
+# 
+# obsr.Ki <- inatK %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.users = length(unique(user.id))) %>% 
+#   print(n = nrow(.))
+# 
+# 
+# obsr.Ae <- ebdA %>% 
+#   mutate(year = year(obs.date)) %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.users = length(unique(observer.id))) %>% 
+#   print(n = nrow(.))
+# 
+# obsr.Ke <- ebdK %>% 
+#   mutate(year = year(obs.date)) %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.users = length(unique(observer.id))) %>% 
+#   print(n = nrow(.))
+# 
+# 
+# obsr.A <- bind_rows(obsr.Ai, obsr.Ae)
+# obsr.K <- bind_rows(obsr.Ki, obsr.Ke)
+# 
+# obsr.Amod <- glmmTMB(n.users ~ scale(year), data = obsr.A, family = nbinom2)
+# sim.modA = simulateResiduals(obsr.Amod)
+# plot(sim.modA)
+# testDispersion(sim.modA)
+# summary(obsr.Amod)
+# 
+# 
+# obsr.Kmod <- glmmTMB(n.users ~ scale(year), data = obsr.K, family = nbinom2)
+# sim.modK = simulateResiduals(obsr.Amod)
+# plot (sim.modK)
+# testDispersion(sim.modK)
+# summary(obsr.Kmod)
 
 
 #------------------------------------------------#
@@ -896,21 +903,21 @@ sd(winteriA$tot.obs)/sqrt(length(winteriA$tot.obs))
 
 ### GLM for observations by year ACAD ###
 
-obsvn.Ai <- inatA %>% 
-  group_by(park, year) %>% 
-  summarise(n.obs = length(unique(id))) %>% 
-  print(n = nrow(.))
-
-obsvn.Ae <- ebdA %>% 
-  mutate(year = year(obs.date)) %>% 
-  group_by(park, year) %>% 
-  summarise(n.obs = length(scientific.name)) %>% 
-  print(n = nrow(.))
-
-obsvn.A <- bind_rows(obsvn.Ai, obsvn.Ae)
-
-obsvn.Amod <- glm(n.obs ~ year, data = obsvn.A, family = "poisson")
-explore_model(obsvn.Amod)
+# obsvn.Ai <- inatA %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.obs = length(unique(id))) %>% 
+#   print(n = nrow(.))
+# 
+# obsvn.Ae <- ebdA %>% 
+#   mutate(year = year(obs.date)) %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.obs = length(scientific.name)) %>% 
+#   print(n = nrow(.))
+# 
+# obsvn.A <- bind_rows(obsvn.Ai, obsvn.Ae)
+# 
+# obsvn.Amod <- glm(n.obs ~ year, data = obsvn.A, family = "poisson")
+# explore_model(obsvn.Amod)
 
 
 
@@ -1214,21 +1221,21 @@ sd(winteriK$tot.obs)/sqrt(length(winteriK$tot.obs))
 
 ### GLM for observations by year ACAD ###
 
-obsvn.Ki <- inatK %>% 
-  group_by(park, year) %>% 
-  summarise(n.obs = length(unique(id))) %>% 
-  print(n = nrow(.))
-
-obsvn.Ke <- ebdK %>% 
-  mutate(year = year(obs.date)) %>% 
-  group_by(park, year) %>% 
-  summarise(n.obs = length(scientific.name)) %>% 
-  print(n = nrow(.))
-
-obsvn.K <- bind_rows(obsvn.Ki, obsvn.Ke)
-
-obsvn.Kmod <- glm(n.obs ~ year, data = obsvn.K, family = "poisson")
-explore_model(obsvn.Amod)
+# obsvn.Ki <- inatK %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.obs = length(unique(id))) %>% 
+#   print(n = nrow(.))
+# 
+# obsvn.Ke <- ebdK %>% 
+#   mutate(year = year(obs.date)) %>% 
+#   group_by(park, year) %>% 
+#   summarise(n.obs = length(scientific.name)) %>% 
+#   print(n = nrow(.))
+# 
+# obsvn.K <- bind_rows(obsvn.Ki, obsvn.Ke)
+# 
+# obsvn.Kmod <- glm(n.obs ~ year, data = obsvn.K, family = "poisson")
+# explore_model(obsvn.Amod)
 
 
 
@@ -1419,11 +1426,11 @@ ggplot() +
             data = r3A %>% filter(!is.na(count2))) +
   geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
           data = acad.fee) +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_x_continuous(expand = c(0, 0)) +
+  # scale_y_continuous(expand = c(0, 0)) +
+  # scale_x_continuous(expand = c(0, 0)) +
   labs(fill = "Observations") +
   lims(x = c(-68.48, -67.99), y = c(44.17, 44.48)) +
-  scale_fill_viridis_b(breaks = c(1, 250, 500, 1000, 5000, 10000, 20000, 30000)) +
+  scale_fill_viridis_b(breaks = c(1, 100, 250, 500, 1000, 5000, 10000, 20000, 30000)) +
   theme_minimal() +
   theme(
     legend.position = c(0.112, 0.818),
@@ -1439,7 +1446,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/heatmap_acad_mdi.png", dpi = 700, width = 6, height = 5.4)
+# ggsave("outputs/forpub/heatmap_acad_mdi_20250114.png", dpi = 700, width = 6, height = 5.4)
 
 
 ## Plot Isle Au Haut
@@ -1449,11 +1456,11 @@ ggplot() +
             data = r3A %>% filter(!is.na(count2))) +
   geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
           data = acad.fee) +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_x_continuous(expand = c(0, 0)) +
+  # scale_y_continuous(expand = c(0, 0)) +
+  # scale_x_continuous(expand = c(0, 0)) +
   labs(fill = "Observations") +
   lims(x = c(-68.7099, -68.42), y = c(43.95, 44.12)) +
-  scale_fill_viridis_b(breaks = c(1, 250, 500, 1000, 2500, 5000, 10000, 20000, 30000)) +
+  scale_fill_viridis_b(breaks = c(1, 100, 250, 500, 1000, 5000, 10000, 20000, 30000)) +
   theme_minimal() +
   theme(
     legend.position = "none",
@@ -1466,7 +1473,7 @@ ggplot() +
 
 
 ## Save plot
-# ggsave("outputs/forpub/heatmap_acad_isleauhaut.png", dpi = 700, width = 6, height = 6)
+# ggsave("outputs/forpub/heatmap_acad_isleauhaut_20250114.png", dpi = 700, width = 6, height = 6)
 
 
 
@@ -1490,7 +1497,7 @@ filtcobsA <- sf::st_join(cobsA, acad.bounds, left = F) %>%
 
 
 ## Calculate the percentage of cells with observations
-length((filtcobsA %>% filter(count > 0))$count) / length(filtcobsA$count) * 100 # 95.96929
+length((filtcobsA %>% filter(count > 0))$count) / length(filtcobsA$count) * 100 # 97.85
 
 
 
@@ -1557,11 +1564,12 @@ ggplot() +
             data = r3K %>% filter(!is.na(count2))) +
   geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
           data = kww.b) +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_x_continuous(expand = c(0, 0)) +
+  # scale_y_continuous(expand = c(0, 0)) +
+  # scale_x_continuous(expand = c(0, 0)) +
   labs(fill = "Observations") +
   lims(x = c(-68.965, -68.47), y = c(45.82, 46.13)) +
-  scale_fill_viridis_b(breaks = c(1, 50, 100, 250, 500, 1000, 1500)) +
+  scale_fill_viridis_b(breaks = c(1, 100, 250, 500, 1000, 5000, 10000, 20000, 30000),
+                       begin = 0, end = .555) +
   theme_minimal() +
   theme(
     legend.position = c(0.112, 0.818),
@@ -1578,8 +1586,9 @@ ggplot() +
   )
 
 
+
 ## Save plot
-# ggsave("outputs/forpub/heatmap_kaww.png", dpi = 700, width = 6, height = 5.4)
+# ggsave("outputs/forpub/heatmap_kaww_20250114.png", dpi = 700, width = 6, height = 5.4)
 
 
 
@@ -1764,6 +1773,7 @@ spidsA <- inatA %>%
 length(spidsA$common.name) # 49,439
 length(spidsA$common.name) / length(inatA$common.name) * 100 # 73 %
 spidsA %>% filter(quality.grade == "research") # 37,531
+nrow(spidsA %>% filter(quality.grade == "research")) / length(inatA$common.name) * 100
 
 
 ## Total observations per species
@@ -1918,7 +1928,7 @@ spidsK <- inatK %>%
 length(spidsK$common.name) # 2,178
 length(spidsK$common.name) / length(inatK$common.name) * 100 # 76.8 %
 spidsK %>% filter(quality.grade == "research") # 1,751
-
+nrow(spidsK %>% filter(quality.grade == "research")) / length(inatK$common.name) * 100
 
 ## Total observations per species
 sptotsK <- inatK %>% 
@@ -2344,13 +2354,17 @@ plot_ly(tebdK,
 map_inatA <- inatA %>%
   filter(quality.grade == "research")
 
-mapdatA <- bind_rows(map_inatA, ebdA) %>% 
-  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+map_ebdA <- ebdA %>% 
+  mutate(positional.accuracy = NA) %>% 
+  rename(observed.on = obs.date, place.guess = locality)
+
+mapdatA <- bind_rows(map_inatA, map_ebdA) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude, positional.accuracy, url) %>% 
   mutate(cat = "All observations")
 
 
 ## Run watch list function to get rare, pest, and T&E species
-watchlist_species(mapdatA, "outputs/watchlist_acad")
+watchlist_species(mapdatA, "ACAD", "outputs/watchlist_acad")
 
 
 ### Load in the watch list csv files
@@ -2358,6 +2372,12 @@ watchlist_species(mapdatA, "outputs/watchlist_acad")
 pestsA <- tibble(read.csv("outputs/watchlist_acad/invasive_pestslist.csv")) %>% 
   select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Invasive species observations")
+
+# tibble(read.csv("outputs/watchlist_acad/invasive_pestslist.csv")) %>% 
+#   filter(positional.accuracy < 100) %>% 
+#   st_as_sf(., coords = c("longitude", "latitude"), 
+#          crs = "+proj=longlat +datum=WGS84") %>% 
+#   st_write(., "outputs/invasive_locations_filt.shp", driver = "ESRI Shapefile")
 
 ptabA <- tibble(pestsA) %>% 
   group_by(scientific.name) %>% 
@@ -2386,13 +2406,13 @@ length(rtabA$scientific.name)
 tandeA <- tibble(read.csv("outputs/watchlist_acad/te_specieslist.csv")) %>% 
   select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
   mutate(cat = "Threatened/endangered species observations")
-
+      
 tetabA <- tibble(tandeA) %>% 
   group_by(scientific.name) %>% 
   summarise(count = length(scientific.name)) %>% 
   arrange(-count) %>% 
   mutate(category = "threatened/endangered")
-
+  
 length(tetabA$scientific.name)
 
 
@@ -2402,10 +2422,24 @@ ptr_tableA <- bind_rows(ptabA, tetabA, rtabA)
 # write.csv(ptr_tableA, "outputs/forpub/table_watchlist_acad.csv", row.names = F)
 
 
+## Managers' report tool stats
+ptrA <- bind_rows(pestsA, rareA, tandeA) %>% 
+  filter(observed.on > "2023-01-23" & observed.on < "2023-12-24")
+
+mrtooltab <- ptrA %>% 
+  group_by(scientific.name, cat) %>% 
+  summarise(count = length(scientific.name), .groups = "drop") %>% 
+  arrange(cat, -count)
+
+mrtooltab %>% 
+  select(-scientific.name) %>% 
+  group_by(cat) %>% 
+  summarise(sum = sum(count))
+
 
 ## What percent of watchlist species have been detected?
 wldetA <- read_excel("data/acad_watchlist_species.xlsx") %>% 
-  filter(in.anp == "P" | in.anp == "Y") %>% 
+  filter(in.anp == "Y") %>% 
   mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableA$scientific.name, "yes", "no"))
 
 
@@ -2421,19 +2455,23 @@ nparkA <- read_excel("data/acad_watchlist_species.xlsx") %>%
 
 #------------------------------------------------#
 
-### KAWW data
+#### KAWW data #####
 
 ## Create full data set with only research-grade grade observations
 map_inatK <- inatK %>%
   filter(quality.grade == "research")
 
-mapdatK <- bind_rows(map_inatK, ebdK) %>% 
-  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+map_ebdK <- ebdK %>% 
+  mutate(positional.accuracy = NA) %>% 
+  rename(observed.on = obs.date, place.guess = locality)
+
+mapdatK <- bind_rows(map_inatK, map_ebdK) %>% 
+  select(common.name, scientific.name, observed.on, place.guess, latitude, longitude, positional.accuracy, url) %>% 
   mutate(cat = "All observations")
 
 
 ## Run watch list function to get rare, pest, and T&E species
-watchlist_species(mapdatK, "outputs/watchlist_kaww")
+watchlist_species(mapdatK, "KAWW", "outputs/watchlist_kaww")
 
 
 ### Load in the watch list csv files
@@ -2460,7 +2498,7 @@ rtabK <- tibble(rareK) %>%
   group_by(scientific.name) %>% 
   summarise(count = length(scientific.name)) %>% 
   arrange(-count) %>% 
-  mutate(category = "rare native")
+  mutate(category = "species of interest")
 
 length(rtabK$scientific.name)
 
@@ -2479,7 +2517,6 @@ tetabK <- tibble(tandeK) %>%
 length(tetabK$scientific.name)
 
 
-
 ## Create table of the watchlist species
 ptr_tableK <- bind_rows(ptabK, tetabK, rtabK)
 
@@ -2488,17 +2525,92 @@ ptr_tableK <- bind_rows(ptabK, tetabK, rtabK)
 
 
 ## What percent of watchlist species have been detected?
-wldetK <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+wldetK <- read_excel("data/kaww_watchlist_species.xlsx") %>% 
+  filter(in.kaww == "Y") %>% 
   mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableK$scientific.name, "yes", "no"))
 
 
 nrow(wldetK %>% filter(citsci.detect == "yes")) / nrow(wldetK)
 
 
+nparkK <- read_excel("data/kaww_watchlist_species.xlsx") %>% 
+  filter(in.kaww == "N" | in.kaww == "U") %>% 
+  mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableK$scientific.name, "yes", "no")) %>% 
+  filter(citsci.detect == "yes")
 
 
 
 
 
+# ## Create full data set with only research-grade grade observations
+# map_inatK <- inatK %>%
+#   filter(quality.grade == "research")
+# 
+# mapdatK <- bind_rows(map_inatK, ebdK) %>% 
+#   select(common.name, scientific.name, observed.on, place.guess, latitude, longitude) %>% 
+#   mutate(cat = "All observations")
+# 
+# 
+# ## Run watch list function to get rare, pest, and T&E species
+# watchlist_species(mapdatK, "outputs/watchlist_kaww")
+# 
+# 
+# ### Load in the watch list csv files
+# ## Pest species
+# pestsK <- tibble(read.csv("outputs/watchlist_kaww/invasive_pestslist.csv")) %>% 
+#   select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+#   mutate(cat = "Invasive species observations")
+# 
+# ptabK <- tibble(pestsK) %>% 
+#   group_by(scientific.name) %>% 
+#   summarise(count = length(scientific.name)) %>% 
+#   arrange(-count) %>% 
+#   mutate(category = "pest/invasive")
+# 
+# length(ptabK$scientific.name)
+# 
+# 
+# ## Rare species
+# rareK <- tibble(read.csv("outputs/watchlist_kaww/rare_specieslist.csv")) %>% 
+#   select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+#   mutate(cat = "Rare native species observations")
+# 
+# rtabK <- tibble(rareK) %>% 
+#   group_by(scientific.name) %>% 
+#   summarise(count = length(scientific.name)) %>% 
+#   arrange(-count) %>% 
+#   mutate(category = "rare native")
+# 
+# length(rtabK$scientific.name)
+# 
+# 
+# ## T&E species
+# tandeK <- tibble(read.csv("outputs/watchlist_kaww/te_specieslist.csv")) %>% 
+#   select(common.name, scientific.name, observed.on, latitude, longitude) %>% 
+#   mutate(cat = "Threatened/endangered species observations")
+# 
+# tetabK <- tibble(tandeK) %>% 
+#   group_by(scientific.name) %>% 
+#   summarise(count = length(scientific.name)) %>% 
+#   arrange(-count) %>% 
+#   mutate(category = "threatened/endangered")
+# 
+# length(tetabK$scientific.name)
+# 
+# 
+# 
+# ## Create table of the watchlist species
+# ptr_tableK <- bind_rows(ptabK, tetabK, rtabK)
+# 
+# # write.csv(ptr_tableK, "outputs/forpub/table_watchlist_kaww.csv", row.names = F)
+# 
+# 
+# 
+# ## What percent of watchlist species have been detected?
+# wldetK <- read_excel("data/acad_watchlist_species.xlsx") %>% 
+#   mutate(citsci.detect = ifelse(scientific.name %in% ptr_tableK$scientific.name, "yes", "no"))
+# 
+# 
+# nrow(wldetK %>% filter(citsci.detect == "yes")) / nrow(wldetK)
 
 

@@ -1,6 +1,6 @@
-"scientific.name","common.name","observed.on","location","latitude","longitude","listing.status"
-"Salmo salar","Atlantic Salmon","2023-07-02","Penobscot County, US-ME, US",45.8585798324,-68.639892681,"federally endangered"
-"Salmo salar","Atlantic Salmon","2023-09-07","Penobscot County, US-ME, US",45.8696039249,-68.6939888848,"federally endangered"
-"Ixobrychus exilis","Least Bittern",NA,NA,45.9151951,-68.618223,"state endangered"
-"Falco peregrinus","Peregrine Falcon",NA,NA,45.8747122,-68.6896026,"state endangered"
-"Falco peregrinus","Peregrine Falcon",NA,NA,45.8747122,-68.6896026,"state endangered"
+"scientific.name","common.name","observed.on","location","listing.status","latitude","longitude","url"
+"Salmo salar","Atlantic Salmon","2023-07-02","Penobscot County, US-ME, US","federally endangered",45.8585798324,-68.639892681,"https://www.inaturalist.org/observations/180459657"
+"Salmo salar","Atlantic Salmon","2023-09-07","Penobscot County, US-ME, US","federally endangered",45.8696039249,-68.6939888848,"https://www.inaturalist.org/observations/182255220"
+"Ixobrychus exilis","Least Bittern","2020-06-14","MB607; 25-3; 2","state endangered",45.9151951,-68.618223,NA
+"Falco peregrinus","Peregrine Falcon","2021-10-10","Katahdin Woods & Waters NM","state endangered",45.8747122,-68.6896026,NA
+"Falco peregrinus","Peregrine Falcon","2021-10-10","Katahdin Woods & Waters NM","state endangered",45.8747122,-68.6896026,NA
