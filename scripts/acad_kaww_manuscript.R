@@ -611,8 +611,8 @@ plot_grid(ebdone, inatone, totebd, totinat, nrow = 2, labels = c('a)', 'b)', 'c)
 
 
 ## Save
-ggsave(paste0("outputs/forpub/figure_observations_observers.png"),
-               height = 10, width = 13.5, units = "in", dpi = 700)
+# ggsave(paste0("outputs/forpub/figure_observations_observers.png"),
+#                height = 10, width = 13.5, units = "in", dpi = 700)
 
 
 
@@ -690,10 +690,10 @@ ckcombA %>%
   geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of checklists") +
-  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2023-12-31"), by = "3 years"), 
                date_labels =  "%Y", 
-               limits = c(as.Date("2004-01-01"), as.Date("2022-12-31"))) +
-  theme(legend.position.inside = c(0.18, 0.85),
+               limits = c(as.Date("2004-01-01"), as.Date("2023-12-31"))) +
+  theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
         legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
@@ -709,8 +709,8 @@ ckcombA %>%
 
 
 ## Export figure  
-# ggsave(paste0("outputs/forpub/monthly_obs_ebird_acad", str_replace_all(today(), "-", ""), ".png"),
-#        height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/monthly_obs_ebird_acad_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 700)
 
 
 
@@ -830,7 +830,7 @@ tempcoA %>%
   geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of observations") +
-  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2023-12-31"), by = "2 years"), 
+  scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2023-12-31"), by = "3 years"), 
                date_labels =  "%Y", 
                limits = c(as.Date("2004-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
@@ -849,8 +849,8 @@ tempcoA %>%
 
 
 ## Export figure  
-# ggsave(paste0("outputs/forpub/monthly_obs_inat_acad", str_replace_all(today(), "-", ""), ".png"),
-#        height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/monthly_obs_inat_acad_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 700)
 
 
 
@@ -1022,9 +1022,9 @@ ckcombK %>%
   geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of checklists") +
-  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2023-12-31"), by = "2 years"), 
                date_labels =  "%Y", 
-               limits = c(as.Date("2014-01-01"), as.Date("2022-12-31"))) +
+               limits = c(as.Date("2014-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
@@ -1041,8 +1041,8 @@ ckcombK %>%
 
 
 ## Export figure  
-# ggsave(paste0("outputs/forpub/monthly_obs_ebird_kaww", str_replace_all(today(), "-", ""), ".png"),
-#        height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/monthly_obs_ebird_kaww_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 700)
 
 
 
@@ -1157,9 +1157,9 @@ tempcoK %>%
   geom_line(linewidth = 0.8) +
   theme_classic() +
   labs(x = "Year", y = "Number of observations") +
-  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2022-12-31"), by = "2 years"), 
+  scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2023-12-31"), by = "2 years"), 
                date_labels =  "%Y", 
-               limits = c(as.Date("2014-01-01"), as.Date("2022-12-31"))) +
+               limits = c(as.Date("2014-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
@@ -1176,8 +1176,8 @@ tempcoK %>%
 
 
 ## Export figure  
-# ggsave(paste0("outputs/forpub/monthly_obs_inat_kaww", str_replace_all(today(), "-", ""), ".png"),
-#        height = 5.28, width = 8, units = "in", dpi = 500)
+# ggsave(paste0("outputs/forpub/monthly_obs_inat_kaww_", str_replace_all(today(), "-", ""), ".png"),
+#        height = 5.28, width = 8, units = "in", dpi = 700)
 
 
 
