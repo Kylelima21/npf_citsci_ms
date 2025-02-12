@@ -689,16 +689,16 @@ ckcombA %>%
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
   geom_line(linewidth = 0.8) +
   theme_classic() +
-  labs(x = "Year", y = "Number of checklists") +
+  labs(x = "Year", y = "Number of eBird checklists") +
   scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2023-12-31"), by = "3 years"), 
                date_labels =  "%Y", 
                limits = c(as.Date("2004-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.text = element_text(color = "black", size = "13",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "13"),
+        axis.title = element_text(color = "black", size = "13"),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
         panel.grid.minor = element_blank(), 
@@ -829,16 +829,16 @@ tempcoA %>%
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
   geom_line(linewidth = 0.8) +
   theme_classic() +
-  labs(x = "Year", y = "Number of observations") +
+  labs(x = "Year", y = "Number of iNaturalist observations") +
   scale_x_date(breaks = seq(as.Date("2004-01-01"), as.Date("2023-12-31"), by = "3 years"), 
                date_labels =  "%Y", 
                limits = c(as.Date("2004-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.text = element_text(color = "black", size = "13",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "13"),
+        axis.title = element_text(color = "black", size = "13"),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
         panel.grid.minor = element_blank(), 
@@ -1021,16 +1021,16 @@ ckcombK %>%
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
   geom_line(linewidth = 0.8) +
   theme_classic() +
-  labs(x = "Year", y = "Number of checklists") +
+  labs(x = "Year", y = "Number of eBird checklists") +
   scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2023-12-31"), by = "2 years"), 
                date_labels =  "%Y", 
                limits = c(as.Date("2014-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.18, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.text = element_text(color = "black", size = "13",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "13"),
+        axis.title = element_text(color = "black", size = "13"),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
         panel.grid.minor = element_blank(), 
@@ -1156,16 +1156,16 @@ tempcoK %>%
   ggplot(aes(x = date, y = tot.obs, color = data, alpha = data, linetype = data)) + 
   geom_line(linewidth = 0.8) +
   theme_classic() +
-  labs(x = "Year", y = "Number of observations") +
+  labs(x = "Year", y = "Number of iNaturalist observations") +
   scale_x_date(breaks = seq(as.Date("2014-01-01"), as.Date("2023-12-31"), by = "2 years"), 
                date_labels =  "%Y", 
                limits = c(as.Date("2014-01-01"), as.Date("2023-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
         legend.background = element_rect(color = "black", size = 0.4),
         legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = "12",  margin = margin(0, 0, 0, 0.2, "cm")),
-        axis.text = element_text(color = "black", size = "12"),
-        axis.title = element_text(color = "black", size = "12"),
+        legend.text = element_text(color = "black", size = "13",  margin = margin(0, 0, 0, 0.2, "cm")),
+        axis.text = element_text(color = "black", size = "13"),
+        axis.title = element_text(color = "black", size = "13"),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
         panel.grid.minor = element_blank(), 
