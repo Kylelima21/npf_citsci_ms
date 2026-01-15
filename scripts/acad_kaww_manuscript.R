@@ -1339,7 +1339,7 @@ ggplot(data = acadvis) +
         axis.title = element_text(color = "black", size = "12"),
         axis.title.x = element_text(margin = margin(0.6, 0, 0, 0, "cm")),
         axis.title.y = element_text(margin = margin(0, 0.5, 0, 0, "cm")),
-        panel.grid.minor = element_blank(), 
+        panel.grid.minor = element_blank(),
         panel.grid.major = element_blank())
 
 

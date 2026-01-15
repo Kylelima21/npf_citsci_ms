@@ -54,3 +54,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+
+data/ebd_US-ME_relNov-2025.txt
+data/kaww_inat_obs_20251218.csv
+data/acad_inat_obs_20251218.csv
