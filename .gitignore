@@ -59,3 +59,5 @@ rsconnect/
 data/ebd_US-ME_relNov-2025.txt
 data/kaww_inat_obs_20251218.csv
 data/acad_inat_obs_20251218.csv
+data/inat_taxonomy_2025.csv
+data/clean_data_for_ms/eBird_acadia.csv

@@ -1715,3 +1715,31 @@ kaww.wl.full %>%
 
 
 
+#------------------------------------------------#
+####             Accessibility                ####
+#------------------------------------------------#
+
+m.rep <- acad.wl.full %>% 
+  filter(observed.on >= "2023-01-30")
+
+
+nrow(m.rep)
+
+m.rep %>% 
+  distinct(scientific.name)
+
+
+m.rep %>% 
+  filter(status == "rare/native")
+
+
+m.rep %>% 
+  filter(status == "invasive/disease")
+
+
+m.rep %>% 
+  filter(status == "federal/state TE")
+
+
+
+
