@@ -10,16 +10,13 @@
 ## Call packages
 library(tidyverse)
 library(sf)
-#library(ggmap)
 library(leaflet)
-# library(htmlwidgets)
-# library(webshot2)
-#library(directlabels)
+library(directlabels)
 library(scales)
 library(cowplot)
 library(conflicted)
-# library(raster) 
-#library(geosphere)
+library(raster) 
+library(geosphere)
 
 
 ## Source the function script
@@ -48,8 +45,8 @@ ebdA <- tibble(read.csv("data/clean_data_for_ms/eBird_acadia.csv"))
 ## Read in the ACAD base map for figures
 acad.bm <- sf::read_sf("data/acad_boundary/formapping.shp")
 
-# ## Read in the ACAD boundary layer
-# acad.bounds <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp")
+## Read in the ACAD boundary layer
+acad.bounds <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp")
 
 ## Read in the fee boundary shape file
 acad.fee <- sf::read_sf("data/acad_boundary/acad_feeboundary_polygon.shp") %>% 
@@ -71,8 +68,8 @@ inatK <- tibble(read.csv("data/clean_data_for_ms/iNaturalist_katahdin.csv"))
 ebdK <- tibble(read.csv("data/clean_data_for_ms/eBird_katahdin.csv"))
 
 # ## Read in the KAWW boundary layer
-# kaww.bounds <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp") %>% 
-#   st_transform(., crs = '+proj=longlat +datum=WGS84')
+kaww.bounds <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp") %>%
+  st_transform(., crs = '+proj=longlat +datum=WGS84')
 
 ## Read in the fee boundary shape file
 kww.b <- sf::read_sf("data/kaww_boundary/kaww_bounds.shp") %>% 
@@ -85,10 +82,16 @@ kaww.watch <- tibble(read.csv("data/clean_data_for_ms/kaww_watchlist.csv"))
 
 #------------------------------------------------#
 
-### Visitation data ###
+### Visitation and taxonomic data ###
 
 ## Read in visitation data
 visits <- tibble(read.csv("data/clean_data_for_ms/park_visitation_data.csv"))
+
+
+## Read in the eBird taxonomy for merging with ebd
+etax <- read.csv("data/ebird_taxonomy_v2025.csv") %>% 
+  select(scientific.name = SCI_NAME, order = ORDER, family = FAMILY,
+         species.group = SPECIES_GROUP)
 
 
 
@@ -154,7 +157,6 @@ wilcox.test(observers.vis ~ park, data = visdat)
 
 
 ### Observer increase over the last decade ###
-
 left_join(ebdv, inatv, by = c("year", "park", "visits")) %>% 
   select(year, park, ebird.observers, inat.observers) %>% 
   group_by(park, year) %>% 
@@ -415,7 +417,7 @@ ckcombA %>%
                date_labels =  "%Y", 
                limits = c(as.Date("2004-01-01"), as.Date("2024-12-31"))) +
   theme(legend.position = c(0.18, 0.85),
-        legend.background = element_rect(color = "black", size = 0.4),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
         legend.title = element_blank(),
         legend.text = element_text(color = "black", size = 13,  margin = margin(0, 0, 0, 0.2, "cm")),
         axis.text = element_text(color = "black", size = 13),
@@ -514,7 +516,7 @@ tempcoA %>%
                date_labels =  "%Y", 
                limits = c(as.Date("2004-01-01"), as.Date("2024-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
-        legend.background = element_rect(color = "black", size = 0.4),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
         legend.title = element_blank(),
         legend.text = element_text(color = "black", size = 13,  margin = margin(0, 0, 0, 0.2, "cm")),
         axis.text = element_text(color = "black", size = 13),
@@ -647,7 +649,7 @@ ckcombK %>%
                date_labels =  "%Y", 
                limits = c(as.Date("2014-01-01"), as.Date("2024-12-31"))) +
   theme(legend.position = c(0.18, 0.85),
-        legend.background = element_rect(color = "black", size = 0.4),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
         legend.title = element_blank(),
         legend.text = element_text(color = "black", size = 13,  margin = margin(0, 0, 0, 0.2, "cm")),
         axis.text = element_text(color = "black", size = 13),
@@ -746,7 +748,7 @@ tempcoK %>%
                date_labels =  "%Y", 
                limits = c(as.Date("2014-01-01"), as.Date("2024-12-31"))) +
   theme(legend.position = c(0.23, 0.85),
-        legend.background = element_rect(color = "black", size = 0.4),
+        legend.background = element_rect(color = "black", linewidth = 0.4),
         legend.title = element_blank(),
         legend.text = element_text(color = "black", size = 13,  margin = margin(0, 0, 0, 0.2, "cm")),
         axis.text = element_text(color = "black", size = 13),
@@ -891,13 +893,7 @@ plot_grid(ebdone, inatone, totebd, totinat, nrow = 2, labels = c('a)', 'b)', 'c)
 
 ### eBird ###
 
-## Read in the eBird taxonomy for merging with ebd
-etax <- read.csv("data/ebird_taxonomy_v2025.csv") %>% 
-  select(scientific.name = SCI_NAME, order = ORDER, family = FAMILY,
-         species.group = SPECIES_GROUP)
-
-
-## Join the two 
+## Join ebd with correct ebird taxonomy info
 ebdtaxA <- left_join(ebdA, etax, by = "scientific.name")
 
 
@@ -982,7 +978,7 @@ bind_cols(i_kingdoms_rgA, i_kingdoms_obsA) %>%
 
 ### eBird ###
 
-## Join the tax data set from earlier with KAWW
+## Join ebd with correct ebird taxonomy info
 ebdtaxK <- left_join(ebdK, etax, by = "scientific.name")
 
 
@@ -1271,9 +1267,11 @@ r3A <- as.data.frame(r2A, xy = TRUE) %>%
 
 ## Plot
 ggplot() +
-  geom_sf(fill = "gray", data = acad.bm) +
+  geom_sf(fill = "white", data = acad.bm) +
   geom_tile(aes(x = x, y = y, fill = count2),
             data = r3A %>% filter(!is.na(count2))) +
+  geom_sf(color = "black", fill = "transparent", linewidth = 1,
+          data = acad.fee) +
   geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
           data = acad.fee) +
   labs(fill = "Observations") +
@@ -1285,8 +1283,8 @@ ggplot() +
     legend.margin = margin(5,5,10,6),
     legend.background = element_rect(color = "black", fill = "white", linewidth = 0.25),
     panel.border = element_rect(color = "black", fill = "transparent", linewidth = 0.5),
-    plot.background = element_rect(color = "white"),
-    plot.margin = margin(8,13,4,10),
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "gray"),
     panel.grid = element_blank(),
     axis.title = element_blank(),
     axis.text = element_blank(),
@@ -1299,10 +1297,12 @@ ggplot() +
 
 ## Plot Isle Au Haut
 ggplot() +
-  geom_sf(fill = "gray", data = acad.bm) +
+  geom_sf(fill = "white", data = acad.bm) +
   geom_tile(aes(x = x, y = y, fill = count2),
             data = r3A %>% filter(!is.na(count2))) +
-  geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
+  geom_sf(color = "black", fill = "transparent", linewidth = 1.2,
+          data = acad.fee) +
+  geom_sf(color = "white", fill = "transparent", linewidth = 0.4,
           data = acad.fee) +
   labs(fill = "Observations") +
   lims(x = c(-68.7099, -68.42), y = c(43.95, 44.12)) +
@@ -1310,8 +1310,9 @@ ggplot() +
   theme_minimal() +
   theme(
     legend.position = "none",
-    panel.border = element_rect(color = "black", fill = "transparent"),
-    plot.background = element_rect(color = "white"),
+    panel.border = element_rect(color = "black", fill = "transparent", linewidth = 0.5),
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "gray"),
     panel.grid = element_blank(),
     axis.title = element_blank(),
     axis.text = element_blank(),
@@ -1399,8 +1400,7 @@ r3K <- as.data.frame(r2K, xy = TRUE) %>%
 
 ## Plot
 ggplot() +
-  geom_sf(color = "black", fill = "white", linewidth = 0.7,
-          data = kww.b) +
+  geom_sf(color = "black", fill = "white", linewidth = 0.7, data = kww.b) +
   geom_tile(aes(x = x, y = y, fill = count2),
             data = r3K %>% filter(!is.na(count2))) +
   geom_sf(color = "white", fill = "transparent", linewidth = 0.3,
@@ -1415,7 +1415,6 @@ ggplot() +
     legend.background = element_rect(color = "black", fill = "white", linewidth = 0.25),
     panel.border = element_rect(color = "black", fill = "transparent", linewidth = 0.5),
     plot.background = element_rect(color = "white"),
-    plot.margin = margin(8,13,4,10),
     panel.background = element_rect(fill = "gray"),
     panel.grid = element_blank(),
     axis.title = element_blank(),
@@ -1719,24 +1718,34 @@ kaww.wl.full %>%
 ####             Accessibility                ####
 #------------------------------------------------#
 
+### How has the early detection tool done? ###
+
+## Get watchlist observations that have been reported since the tool was 
+# implemented on January 30, 2023
 m.rep <- acad.wl.full %>% 
   filter(observed.on >= "2023-01-30")
 
 
+## Calculate total observations
 nrow(m.rep)
 
+
+## Calculate total species
 m.rep %>% 
   distinct(scientific.name)
 
 
+## See rare/native group obs
 m.rep %>% 
   filter(status == "rare/native")
 
 
+## See invasive/disease group obs
 m.rep %>% 
   filter(status == "invasive/disease")
 
 
+## See federal/state TE group obs
 m.rep %>% 
   filter(status == "federal/state TE")
 
